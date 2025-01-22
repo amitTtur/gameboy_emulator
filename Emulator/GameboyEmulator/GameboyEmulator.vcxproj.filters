@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\OpcodeRelated">
+      <UniqueIdentifier>{b034ace4-7c31-4627-904c-3f3cafe406ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MemoryRelated">
+      <UniqueIdentifier>{4717ce31-e6c2-404c-8cd5-635e49e80300}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Misc">
+      <UniqueIdentifier>{8f696dd1-a65a-4a81-8b9e-b4ec64477576}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Opcodes">
+      <UniqueIdentifier>{d2eca71f-6ac4-435e-be00-0aba0ef0b101}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MemoryRelated\cartridge">
+      <UniqueIdentifier>{ff5b6870-336b-492c-b4bc-6c2fbf2299e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\tests">
+      <UniqueIdentifier>{6523a4da-79eb-4183-90b5-d23528032798}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gameboy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MBC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="arithmetic8bit.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="arithmetic16bit.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="JumpCallOpcodes.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Load8Bit.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Load16Bit.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="ShiftRotate8bit.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="OpcodeFactory.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscOpcodes.cpp">
+      <Filter>Source Files\Opcodes</Filter>
+    </ClCompile>
+    <ClCompile Include="CartridgeView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MBC1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NoMBC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="globalVars.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Gameboy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Opcode.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="OpcodeFactory.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Header Files\MemoryRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="Register.hpp">
+      <Filter>Header Files\MemoryRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneralException.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="CodesAndDefines.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="arithmetic8bit.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="dataStructures.hpp">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Load8Bit.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="Load16Bit.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="JumpCallOpcodes.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="ShiftRotate8bit.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="arithmetic16bit.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscOpcodes.h">
+      <Filter>Header Files\OpcodeRelated</Filter>
+    </ClInclude>
+    <ClInclude Include="MBC.h">
+      <Filter>Header Files\MemoryRelated\cartridge</Filter>
+    </ClInclude>
+    <ClInclude Include="CartridgeView.h">
+      <Filter>Header Files\MemoryRelated\cartridge</Filter>
+    </ClInclude>
+    <ClInclude Include="MBC1.h">
+      <Filter>Header Files\MemoryRelated\cartridge</Filter>
+    </ClInclude>
+    <ClInclude Include="NoMBC.h">
+      <Filter>Header Files\MemoryRelated\cartridge</Filter>
+    </ClInclude>
+    <ClInclude Include="globalVars.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="opcodes.json">
+      <Filter>Header Files\Misc</Filter>
+    </Text>
+    <Text Include="logFile.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="01-special.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="02-interrupts.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="04-op r,imm.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="03-op sp,hl.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="05-op rp.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="06-ld r,r.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="08-misc instrs.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="07-jr,jp,call,ret,rst.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="09-op r,r.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="10-bit ops.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="11-op a,(hl).gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+    <None Include="cpu_instrs.gb">
+      <Filter>Resource Files\tests</Filter>
+    </None>
+  </ItemGroup>
+</Project>
