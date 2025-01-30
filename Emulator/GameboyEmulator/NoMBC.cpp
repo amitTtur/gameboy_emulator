@@ -55,11 +55,11 @@ void NoMBC::write(const uint16_t& address, uint8_t value)
 	// write special cases 
 	if (address == TIMER_TIMA_LOC)
 	{
-		TIMAOverflowCooldown = 0;
+		globalVars::TIMAOverflowCooldown(0);
 	}
 	else if (address == TIMER_DIV_LOC)
 	{
-		DIVRegister = 0;
+		globalVars::DIVRegister(0);
 	}
 
 

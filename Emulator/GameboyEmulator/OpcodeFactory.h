@@ -27,20 +27,30 @@ public:
 	OpcodeFactory(OpcodeFactory&) = delete; // the class should be created only through normal constarctor not a copy one;
 
 	// DELETE AFTER USE.
-	Opcode* getInstance(uint8_t opcode);
+	//Opcode* getInstance(uint8_t opcode);
+	int run(uint8_t opcode);
 
 	void setPrefix(const bool& val);
 	bool getPrefix() const;
 
 private:
+	Opcode* _arithmetic8bit;
+	Opcode* _arithmetic16bit;
+	Opcode* _jumpCallOpcodes;
+	Opcode* _load8bit;
+	Opcode* _load16bit;
+	Opcode* _miscOpcodes;
+	Opcode* _shiftRotate8bit;
+
 	bool _prefix; // if the previous command was prefix, do a prefix command in the next oppcode executed.
 
-
+	OpcodeElementHolder _currentOpcode;
 
 	Memory& _memRef;
 	// unprefix the cbPrefix in the first map, in the second (inner)
 	// map is the opcodes hexadecimal number then that opcodes contents.
-	std::map<std::string, std::map<int, OpcodeElementHolder>> _opcodesMap;
+	std::map<int, OpcodeElementHolder> _opcodesMap;
+	std::map<int, OpcodeElementHolder> _cbOpcodesMap;
 
 	void initializeOpcodeMap();
 	inline json getOpcodesJsonContents();
@@ -66,6 +76,7 @@ private:
 	std::set<std::string> _miscNames = { "NOP", "STOP", "HALT", "PREFIX", "EI", "DI" };
 	std::set<std::string> _jumpNames = { "JR", "JP", "RET", "RETI", "RST", "CALL"};
 	std::set<std::string> _uniqueShftersNames = { "RLCA", "RLA", "RRCA", "RRA"};
+
 };
 
 

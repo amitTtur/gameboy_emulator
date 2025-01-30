@@ -5,7 +5,7 @@
 class Load8Bit : public Opcode
 {
 public:
-	Load8Bit(Memory& mem_ref, OpcodeElementHolder& currentOpcode) : Opcode(mem_ref), _currentOpcode(currentOpcode) {};
+	Load8Bit(Memory& mem_ref, OpcodeElementHolder* currentOpcode);
 
 	virtual ~Load8Bit() = default;
 
@@ -13,8 +13,6 @@ public:
 	virtual void printOpcodeMnemonic() const override;
 
 private:
-	// from opcode it has a _mem copy. [Memory& _mem]
-	OpcodeElementHolder& _currentOpcode;
 
 	void LD();
 };

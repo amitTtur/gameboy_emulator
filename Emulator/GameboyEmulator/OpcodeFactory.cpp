@@ -1,66 +1,66 @@
 #include "OpcodeFactory.h"
 
-OpcodeFactory::OpcodeFactory(Memory& memoryReferance) : _memRef(memoryReferance)
+OpcodeFactory::OpcodeFactory(Memory& memoryReferance) : _memRef(memoryReferance),
+    _arithmetic8bit(new Arithmetic8bit(memoryReferance, &_currentOpcode)),
+    _arithmetic16bit(new Arithmetic16bit(memoryReferance, &_currentOpcode)),
+    _jumpCallOpcodes(new JumpCallOpcodes(memoryReferance, &_currentOpcode)),
+    _load8bit(new Load8Bit(memoryReferance, &_currentOpcode)),
+    _load16bit(new Load16Bit(memoryReferance, &_currentOpcode)),
+    _miscOpcodes(new MiscOpcodes(memoryReferance, &_currentOpcode, *this)),
+    _shiftRotate8bit(new ShiftRotate8bit(memoryReferance, &_currentOpcode))
 {
+
     initializeOpcodeMap();
     _prefix = false;
 }
 
-Opcode* OpcodeFactory::getInstance(uint8_t opcode)
+int OpcodeFactory::run(uint8_t opcode)
 {
-    std::string table = _prefix ? "cbprefixed" : "unprefixed";
-    _prefix = false;
-
-    if (_opcodesMap[table].find(opcode) == _opcodesMap[table].end())
+    if (_opcodesMap.find(opcode) == _opcodesMap.end() || _cbOpcodesMap.find(opcode) == _cbOpcodesMap.end())
     {
         throw GeneralException("no opcode with that number exists in the opcode map... [GetInstance]", UNKNOWN_OPCODE);
     }
 
-    OpcodeElementHolder& tmp = _opcodesMap[table][opcode];
-    Opcode* temp;
+    _currentOpcode = _prefix ? _cbOpcodesMap[opcode] : _opcodesMap[opcode];
+  
     // case prefix is called
-    if (table == "cbprefixed" || isUniqueShifters(tmp.mnemonic))
+    if (_prefix || isUniqueShifters(_currentOpcode.mnemonic))
     {
         // l operation in cb prefix are shifters no need to check
-        temp = new ShiftRotate8bit(_memRef, tmp);
-        return temp;
+        _prefix = false;
+        return _shiftRotate8bit->run();
     }
+    
 
     /****** From here is the unprefixed (regular) opcodes table ******/
 
-    if (isMisc(tmp.mnemonic))
+    if (isMisc(_currentOpcode.mnemonic))
     {
         // ALTHOUGH IT IS A POINTER, DONT DELETE THE INSTANCE OF FACTORY
-        temp = new MiscOpcodes(_memRef, tmp,*this);
-        return temp;
+        return _miscOpcodes->run();
     }
 
-    if (isArithmetic(tmp.mnemonic))
+    if (isArithmetic(_currentOpcode.mnemonic))
     {
-        if (areOperands16BitsLD(tmp))
+        if (areOperands16BitsLD(_currentOpcode))
         {
-            temp = new Arithmetic16bit(_memRef, tmp);
-            return temp;
+            return _arithmetic16bit->run();
         }
-        temp = new Arithmetic8bit(_memRef, tmp);
-        return temp;
+        return _arithmetic8bit->run();
     }
 
-    if (isLoad(tmp.mnemonic))
+    if (isLoad(_currentOpcode.mnemonic))
     {
-        if (areOperands16BitsLD(tmp))
+        if (areOperands16BitsLD(_currentOpcode))
         {
-            temp = new Load16Bit(_memRef, tmp);
-            return temp;
+            return _load16bit->run();
         }
-        temp = new Load8Bit(_memRef, tmp);
-        return temp;
+        return _load8bit->run();
     }
 
-    if (isJump(tmp.mnemonic))
+    if (isJump(_currentOpcode.mnemonic))
     {
-        temp = new JumpCallOpcodes(_memRef, tmp);
-        return temp;
+        return _jumpCallOpcodes->run();
     }
 
     // probably an unregistered opcode in that case gb (the real one) would crash.
@@ -157,12 +157,8 @@ void OpcodeFactory::initializeOpcodeMap()
                 tmp.operands.push_back(tmp2);
             }
         }
-        uniqueName.insert(std::pair<int, OpcodeElementHolder>(std::stoi(item.key(), nullptr, 16), tmp));
+        _opcodesMap.insert(std::pair<int, OpcodeElementHolder>(std::stoi(item.key(), nullptr, 16), tmp));
     }
-    // adding it to the opcode map
-    this->_opcodesMap.insert(std::pair<std::string, std::map<int, OpcodeElementHolder>>("unprefixed", uniqueName));
-    // clearing it for the cbPrefix iteration
-    uniqueName.clear();
 
     for (auto& item : j["cbprefixed"].items())
     {
@@ -223,10 +219,8 @@ void OpcodeFactory::initializeOpcodeMap()
                 tmp.operands.push_back(tmp2);
             }
         }
-        uniqueName.insert(std::pair<int, OpcodeElementHolder>(std::stoi(item.key(), nullptr, 16), tmp));
+        _cbOpcodesMap.insert(std::pair<int, OpcodeElementHolder>(std::stoi(item.key(), nullptr, 16), tmp));
     }
-    // adding it to the opcode map
-    this->_opcodesMap.insert(std::pair<std::string, std::map<int, OpcodeElementHolder>>("cbprefixed", uniqueName));
 }
 
 json OpcodeFactory::getOpcodesJsonContents()

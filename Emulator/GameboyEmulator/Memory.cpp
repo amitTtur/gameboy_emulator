@@ -42,18 +42,34 @@ RegisterFile& Memory::getsRegs()
 uint8_t Memory::getMemoryLocation()
 {
 	uint8_t temp = _mbc->read(_regs.PC);
-	_regs.PC += 1;
+
+	if (globalVars::haltBug())
+	{
+		globalVars::haltBug(false);
+	}
+	else
+	{
+		_regs.PC += 1;
+	}
 	return temp;
 }
 
 uint16_t Memory::getMemoryLocation16bit() {
-	uint8_t lowByte = _mbc->read(_regs.PC);        // Read the high byte
+	uint8_t lowByte = _mbc->read(_regs.PC);          // Read the high byte
 	uint8_t highByte = _mbc->read(_regs.PC + 1);     // Read the low byte
 
 	// Combine the two bytes into a 16-bit value (little-endian)
 	uint16_t tmp = (highByte << 8) | lowByte;
 
-	_regs.PC += 2;
+	if (globalVars::haltBug())
+	{
+		globalVars::haltBug(false);
+		_regs.PC += 1;
+	}
+	else
+	{
+		_regs.PC += 2;
+	}
 
 	// Return the 16-bit value
 	return tmp;
@@ -76,7 +92,7 @@ uint16_t Memory::getMemoryLocation16bit(const uint16_t& index) {
 
 
 operandReturn<uint8_t> Memory::get8BitOperand(const operandElementHolder& operand) {
-	specialLdMove = false;
+	globalVars::specialLdMove(false);
 	operandReturn<uint8_t> ret;
 	if (operand.immediate) // VERY VERY VERY IMPORTANT CHECK FOR THE 16 bit ones!!!!
 	{
@@ -107,15 +123,15 @@ operandReturn<uint8_t> Memory::get8BitOperand(const operandElementHolder& operan
 	}
 
 	// special ld instruction from here [a8] or a [c]
-	specialLdMove = true;
+	globalVars::specialLdMove(true);
 	if (operand.name == "a8")
 	{
 		ret.address = 0; // no adress here, immidiate value
 		ret.value = getMemoryLocation();
 		return ret;
 	}
-	ret.address = (*_regs.strTo8bit[operand.name])();
-	ret.value = getMemoryLocation(ret.address);
+	ret.address = 0;
+	ret.value = (*_regs.strTo8bit[operand.name])();
 	return ret;
 	
 	//throw GeneralException("Invalid operand name, or a request to access the F register [get8BitOperand]",UNKNWON_OPERAND);
@@ -123,7 +139,7 @@ operandReturn<uint8_t> Memory::get8BitOperand(const operandElementHolder& operan
 
 operandReturn<uint8_t> Memory::get8BitOperand(const std::string operand)
 {
-	specialLdMove = false;
+	globalVars::specialLdMove(false);
 	operandReturn<uint8_t> ret;
 	ret.isRegister = operand;
 	ret.value = (*_regs.strTo8bit[operand])();

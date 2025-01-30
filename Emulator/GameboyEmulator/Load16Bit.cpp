@@ -1,25 +1,31 @@
 #include "Load16Bit.h"
 
+Load16Bit::Load16Bit(Memory& mem_ref, OpcodeElementHolder* currentOpcode) : Opcode(mem_ref, currentOpcode) {
+	_strToFunc["LD"] = &Load16Bit::LD;
+	_strToFunc["POP"] = &Load16Bit::POP;
+	_strToFunc["PUSH"] = &Load16Bit::PUSH;
+}
+
 int Load16Bit::run()
 {
-	auto it = _strToFunc.find(_currentOpcode.mnemonic);
+	auto it = _strToFunc.find(_currentOpcode->mnemonic);
 
 	if (it != _strToFunc.end()) {
 
 		// Call the function pointed to by the iterator
 		(this->*(it->second))(); // run the opcode
-		return _currentOpcode.cycles;
+		return _currentOpcode->cycles;
 	}
 
-	throw GeneralException("Unsupported opcode: " + _currentOpcode.mnemonic + ", had appeared at [run-> load16bit]", UNKNOWN_OPCODE);
+	throw GeneralException("Unsupported opcode: " + _currentOpcode->mnemonic + ", had appeared at [run-> load16bit]", UNKNOWN_OPCODE);
 }
 
 void Load16Bit::printOpcodeMnemonic() const
 {
-	std::cout << _currentOpcode.mnemonic << " ";
-	for (int i = 0; i < _currentOpcode.operands.size(); i++)
+	std::cout << _currentOpcode->mnemonic << " ";
+	for (int i = 0; i < _currentOpcode->operands.size(); i++)
 	{
-		std::cout << _currentOpcode.operands[i].name << " ";
+		std::cout << _currentOpcode->operands[i].name << " ";
 	}
 	std::cout << std::endl;
 }
@@ -28,15 +34,15 @@ void Load16Bit::LD()
 {
 	RegisterFile& regs = _mem.getsRegs();
 
-	if (_currentOpcode.operands.size() == 3)
+	if (_currentOpcode->operands.size() == 3)
 	{
 		specialLD();
 		return;
 	}
 
 	// Retrieve operands
-	operandReturn<uint16_t> operand1 = _mem.get16BitOperand(_currentOpcode.operands[0]);
-	operandReturn<uint16_t> operand2 = _mem.get16BitOperand(_currentOpcode.operands[1]);
+	operandReturn<uint16_t> operand1 = _mem.get16BitOperand(_currentOpcode->operands[0]);
+	operandReturn<uint16_t> operand2 = _mem.get16BitOperand(_currentOpcode->operands[1]);
 
 	if (operand1.isMemoryLocation)
 	{
@@ -52,7 +58,7 @@ void Load16Bit::POP()
 {
 	RegisterFile& regs = _mem.getsRegs();
 
-	operandReturn<uint16_t>  operand1 = _mem.get16BitOperand(_currentOpcode.operands[0]);
+	operandReturn<uint16_t>  operand1 = _mem.get16BitOperand(_currentOpcode->operands[0]);
 
 	uint16_t val = 0;
 	val += _mem.getMBC()->read(regs.SP);
@@ -68,7 +74,7 @@ void Load16Bit::PUSH()
 {
 	RegisterFile& regs = _mem.getsRegs();
 
-	operandReturn<uint16_t> operand1 = _mem.get16BitOperand(_currentOpcode.operands[0]);
+	operandReturn<uint16_t> operand1 = _mem.get16BitOperand(_currentOpcode->operands[0]);
 
 	regs.SP -= 1;
 	_mem.getMBC()->write(regs.SP, (operand1.value >> 8) & 0xFF); // High byte
@@ -83,7 +89,7 @@ void Load16Bit::specialLD()
 
 	//operandReturn<uint16_t> operand1 = _mem.get16BitOperand(_currentOpcode.operands[0]); //hl
 	//operandReturn<uint16_t> operand2 = _mem.get16BitOperand(_currentOpcode.operands[1]); // sp
-	operandReturn<uint8_t> operand3 = _mem.get8BitOperand(_currentOpcode.operands[2]); // e
+	operandReturn<uint8_t> operand3 = _mem.get8BitOperand(_currentOpcode->operands[2]); // e
 
 	// static case from uint8 (unsigned) to int (signed)
 	uint32_t result = static_cast<int8_t>(operand3.value) + regs.SP;

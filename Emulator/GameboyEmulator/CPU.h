@@ -4,6 +4,7 @@
 #include "Memory.h"
 #include "OpcodeFactory.h"
 #include "CodesAndDefines.h"
+#include "globalVars.h"
 
 #ifndef CPU_H
 #define CPU_H
@@ -22,30 +23,30 @@ public:
 
 
 	//interrupts set
-	uint8_t int_Vblank() { return _mem.IF() & 1; }; //bit 0
-	uint8_t int_LCDCStatus() { return (_mem.IF() >> 1) & 1; }; //bit 1
-	uint8_t int_timerOverflow() { return (_mem.IF() >> 2) & 1; }; //bit 2
-	uint8_t int_serialTransfer() { return (_mem.IF() >> 3) & 1; }; //bit 3
-	uint8_t int_Joypad() { return (_mem.IF() >> 4) & 1; }; //bit 4
+	uint8_t int_Vblank();
+	uint8_t int_LCDCStatus();
+	uint8_t int_timerOverflow();
+	uint8_t int_serialTransfer();
+	uint8_t int_Joypad();
 
-	void int_Vblank(uint8_t val) { _mem.IF() = (_mem.IF() & ~1 | val); } //bit 0
-	void int_LCDCStatus(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 1)) | (val << 1); }; //bit 1
-	void int_timerOverflow(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 2)) | (val << 2); };  //bit 2
-	void int_serialTransfer(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 3)) | (val << 3); };  //bit 3
-	void int_Joypad(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 4)) | (val << 4); }; //bit 4
+	void int_Vblank(uint8_t val);
+	void int_LCDCStatus(uint8_t val);
+	void int_timerOverflow(uint8_t val);
+	void int_serialTransfer(uint8_t val);
+	void int_Joypad(uint8_t val);
 
 	//interrupts enable
-	uint8_t intEnable_Vblank() { return _mem.IE() & 1; }; //bit 0
-	uint8_t intEnable_LCDCStatus() { return (_mem.IE() >> 1) & 1; }; //bit 1
-	uint8_t intEnable_timerOverflow() { return (_mem.IE() >> 2) & 1; }; //bit 2
-	uint8_t intEnable_serialTransfer() { return (_mem.IE() >> 3) & 1; }; //bit 3
-	uint8_t intEnable_Joypad() { return (_mem.IE() >> 4) & 1; }; //bit 4
+	uint8_t intEnable_Vblank();
+	uint8_t intEnable_LCDCStatus();
+	uint8_t intEnable_timerOverflow();
+	uint8_t intEnable_serialTransfer();
+	uint8_t intEnable_Joypad();
 
-	void intEnable_Vblank(uint8_t val) { _mem.IE() = (_mem.IE() & ~1 | val); } //bit 0
-	void intEnable_LCDCStatus(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 1)) | (val << 1); }; //bit 1
-	void intEnable_timerOverflow(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 2)) | (val << 2); };  //bit 2
-	void intEnable_serialTransfer(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 3)) | (val << 3); };  //bit 3
-	void intEnable_Joypad(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 4)) | (val << 4); }; //bit 4
+	void intEnable_Vblank(uint8_t val);
+	void intEnable_LCDCStatus(uint8_t val);
+	void intEnable_timerOverflow(uint8_t val);
+	void intEnable_serialTransfer(uint8_t val);
+	void intEnable_Joypad(uint8_t val);
 
 private:
 	Memory _mem;

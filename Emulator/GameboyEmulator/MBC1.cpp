@@ -65,6 +65,14 @@ void MBC1::write(const uint16_t& address, uint8_t value)
 	// generally writes to those location are ignored cause you cant change hardwriten
 	// game instruction of the rom, so the game boy uses those writes to change the behaviour
 	// of the mbc. YOU clever clever boy
+
+	// write special cases 
+	if (address == TIMER_DIV_LOC)
+	{
+		globalVars::DIVRegister(0);
+		return;
+	}
+
 	if (address < 0x8000)
 	{
 		// activating ram support
@@ -108,14 +116,9 @@ void MBC1::write(const uint16_t& address, uint8_t value)
 		return;
 	}
 
-	// write special cases 
 	if (address == TIMER_TIMA_LOC)
 	{
-		TIMAOverflowCooldown = 0;
-	}
-	else if (address == TIMER_DIV_LOC)
-	{
-		DIVRegister = 0;
+		globalVars::TIMAOverflowCooldown(0);
 	}
 
 	// attempt to write to ram when there is no ram support or when access to ram is disabled

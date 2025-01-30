@@ -25,14 +25,16 @@ writing to a memory location need to go through the mbc in case any special regi
 class Opcode {
 
 public:
-	Opcode(Memory& mem_ref) : _mem(mem_ref) {};
+	Opcode(Memory& mem_ref, OpcodeElementHolder* current_opcode);
 	virtual ~Opcode() = default;
 
 	virtual void printOpcodeMnemonic() const = 0;
 	virtual int run() = 0;
 
-protected:
+	OpcodeElementHolder* getCurrentOpcode();
 
+protected:
+	OpcodeElementHolder* _currentOpcode;
 	Memory& _mem;
 };
 

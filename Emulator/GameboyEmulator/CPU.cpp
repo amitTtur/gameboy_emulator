@@ -2,20 +2,15 @@
 
 CPU::CPU(const std::string& romPath) : _mem(romPath), _opcodeFactory(_mem)
 {
-	systemHalted = false;
-	_mem.getsRegs().PC = 0;
-	_mem.getsRegs().SP = 0xFFFE;
-	_fallingEdgeTimerDetection = 0; //maybe start at 1, need to check
-	// add the boot code here future amit
 	updateMemAndRegsAfterBoot();
 
 	// open the file in appending, and clear it when begining to use it
-	logFile.open("logFile.txt", std::ios::out);
-	if(!logFile.is_open())
-	{
-		std::cout << "log file didnt open." << std::endl;
-	}
-	writeCurrentStateToLogFile();
+	//logFile.open("logFile.txt", std::ios::out);
+	//if(!logFile.is_open())
+	//{
+	//	std::cout << "log file didnt open." << std::endl;
+	//}
+	//writeCurrentStateToLogFile();
 }
 
 CPU::~CPU()
@@ -27,49 +22,64 @@ int times = 0;
 
 int CPU::ExecuteNextInstruction()
 {
-	int cycles = 1;
+	int cycles = 0;
 	Opcode* instance = nullptr;
 
-	if (systemHalted)
+	if (globalVars::systemHalted())
 	{
-		std::cout << "halted" << std::endl;
+		//std::cout << "halted" << std::endl;
 		return 4;
 	}
 
-
-	//do factory shit
 	try
 	{
-		// also for testing, remove after its done
-		if (times == 152037)
+		//instance = _opcodeFactory.getInstance(_mem.getMemoryLocation());
+		//cycles = instance->run();
+		//delete instance;
+		//return cycles;
+
+		return _opcodeFactory.run(_mem.getMemoryLocation());
+
+		/* also for testing, remove after its done
+		if (times == 152039)
 		{
 			std::cout << "here" << std::endl;
 		}
-
-		
-		instance = _opcodeFactory.getInstance(_mem.getMemoryLocation());
-
-		//instance->printOpcodeMnemonic();
+		std::cout << "times: " << times 
+			<< " IF: " << std::setw(8) << static_cast<int>(_mem.IF()) 
+			<< " IE: " << std::setw(8) << static_cast<int>(_mem.IE()) 
+			<< (globalVars::systemHalted() ? "  system halted" : " ")
+			<< (globalVars::haltBug() ? "  halt bug" : " ") << std::endl;
+			
+		instance->printOpcodeMnemonic();
+		std::cout << std::endl;
 
 		if (times % 100000 == 0) { std::cout << times << std::endl; times++; }
 
 		cycles = instance->run();
 
-		delete instance;
+		if (!_opcodeFactory.getPrefix() && (!globalVars::systemHalted() || instance->getCurrentOpcode().mnemonic == "HALT"))
+		{
+			writeCurrentStateToLogFile();
+			times++;
+		}
+
+		delete instance;*/
 	}
 	catch (const std::exception& e)
 	{
 		std::cout << "error: " << e.what() << std::endl;
-		if (instance)
-		{
-			delete instance;
-		}
+		return 4;
+		//if (instance)
+		//{
+		//	delete instance;
+		//}
 	}
 	
 
 	//std::cout << "" << _mem.getsRegs().PC << std::endl;
 
-	return cycles; //return ammount of clock cycles used
+	//return cycles;
 }
 
 int CPU::handleInterrupts()
@@ -85,8 +95,9 @@ int CPU::handleInterrupts()
 	auto performCall = [&](uint8_t n) 
 	{
 
-		std::cout << "interrupt triggerd" << std::endl;
-		systemHalted = false;
+		//std::cout << "interrupt triggerd" << std::endl;
+		globalVars::systemHalted(false);
+		_mem.IME(0);
 
 		uint16_t pcAfterCurrentOpcode = regs.PC;
 
@@ -96,16 +107,21 @@ int CPU::handleInterrupts()
 		_mem.getMBC()->write(regs.SP, pcAfterCurrentOpcode & 0xFF);
 
 		regs.PC = n;
-		//regs.PC = (_mem[n] << 8) | _mem[n + 1];
 	};
+
+	if (!_mem.IME())
+	{
+		if (globalVars::systemHalted() && ((_mem.IF() & _mem.IE() & 0x1f) != 0))
+		{
+			globalVars::systemHalted(false);
+		}
+
+		return 0;
+	}
 
 	if (int_Vblank() && intEnable_Joypad())
 	{
 		//vblank handle
-
-		//push pc to stack
-		//put INT_VBLANK_LOC in pc
-		_mem.IME(0);
 		performCall(INT_VBLANK_LOC);
 		int_Vblank(0);
 		return 20;
@@ -113,10 +129,6 @@ int CPU::handleInterrupts()
 	if (int_LCDCStatus() && intEnable_LCDCStatus())
 	{
 		//lcdcstatus handle
-
-		//push pc to stack
-		//put INT_STAT_LOC in pc
-		_mem.IME(0);
 		performCall(INT_STAT_LOC);
 		int_LCDCStatus(0);
 		return 20;
@@ -124,10 +136,6 @@ int CPU::handleInterrupts()
 	if (int_timerOverflow() && intEnable_timerOverflow())
 	{
 		//timer handle
-
-		//push pc to stack
-		//put INT_TIMER_LOC in pc
-		_mem.IME(0);
 		performCall(INT_TIMER_LOC);
 		int_timerOverflow(0);
 		return 20;
@@ -135,7 +143,6 @@ int CPU::handleInterrupts()
 	if (int_serialTransfer() && intEnable_serialTransfer())
 	{
 		//serial handle
-		_mem.IME(0);
 		performCall(INT_SERIAL_LOC);
 		int_serialTransfer(0);
 		return 20;
@@ -143,10 +150,6 @@ int CPU::handleInterrupts()
 	if (int_Joypad() && intEnable_Joypad())
 	{
 		//joypad handle
-
-		//push pc to stack
-		//put INT_JOYPAD_LOC in pc
-		_mem.IME(0);
 		performCall(INT_JOYPAD_LOC);
 		int_Joypad(0);
 		return 20;
@@ -154,65 +157,68 @@ int CPU::handleInterrupts()
 	return 0;
 }
 
+
 void CPU::updateTimers(uint8_t tCycles)
 {
-	uint8_t divBit;
 	for (int i = 0; i < tCycles; i++)
 	{
-		//div update
-		DIVRegister++;
-		_mem[TIMER_DIV_LOC] = DIVRegister >> 8;
+		// DIV register update (equivalent to SYSCLK)
+		globalVars::DIVRegister(globalVars::DIVRegister() + 1);
+		_mem[TIMER_DIV_LOC] = globalVars::DIVRegister() >> 8;
 
-		//tima update
-		if (TIMAOverflowCooldown > 0)
+		// Handle TIMA overflow cooldown
+		if (globalVars::TIMAOverflowCooldown() > 0)
 		{
-			//tima reset to tma
-			TIMAOverflowCooldown--;
-
-			if (TIMAOverflowCooldown == 0)
+			globalVars::TIMAOverflowCooldown(globalVars::TIMAOverflowCooldown() - 1);
+			if (globalVars::TIMAOverflowCooldown() == 0)
 			{
 				_mem[TIMER_TIMA_LOC] = _mem[TIMER_TMA_LOC];
 				int_timerOverflow(1);
 			}
+			continue;
 		}
-		else
+
+		// Determine which bit to use based on TAC
+		uint8_t divBit;
+		switch (_mem[TIMER_TAC_LOC] & 0b11)
 		{
-			switch (_mem[TIMER_TAC_LOC] & 0b11)
-			{
-			case 0b00:
-				divBit = (DIVRegister >> 9) & 1;
-				break;
-			case 0b01:
-				divBit = (DIVRegister >> 3) & 1;
-				break;
-			case 0b10:
-				divBit = (DIVRegister >> 5) & 1;
-				break;
-			case 0b11:
-				divBit = (DIVRegister >> 7) & 1;
-				break;
-			default:
-				break;
-			}
-			uint8_t andResult = divBit & ((_mem[TIMER_TAC_LOC] >> 2) & 1);
-			if (andResult == 0 && _fallingEdgeTimerDetection == 1)
-			{
-				//check for TIMA overflow
-				if (_mem[TIMER_TIMA_LOC] == 0xff)
-				{
-					TIMAOverflowCooldown = 4;
-					_mem[TIMER_TIMA_LOC] = 0;
-				}
-				else
-				{
-					//update TIMA
-					_mem[TIMER_TIMA_LOC] += 1;
-				}
-			}
-			_fallingEdgeTimerDetection = andResult; //storing result for next cycle
+		case 0b00: // bit 9
+			divBit = (globalVars::DIVRegister() >> 9) & 1;
+			break;
+		case 0b01: // bit 3
+			divBit = (globalVars::DIVRegister() >> 3) & 1;
+			break;
+		case 0b10: // bit 5
+			divBit = (globalVars::DIVRegister() >> 5) & 1;
+			break;
+		case 0b11: // bit 7
+			divBit = (globalVars::DIVRegister() >> 7) & 1;
+			break;
 		}
+
+		// Check if timer is enabled
+		uint8_t timerEnabled = (_mem[TIMER_TAC_LOC] >> 2) & 1;
+		uint8_t andResult = divBit & timerEnabled;
+
+
+		if (_fallingEdgeTimerDetection == 1 && andResult == 0)
+		{
+			// Increment TIMA
+			if (_mem[TIMER_TIMA_LOC] == 0xFF)
+			{
+				// Overflow condition
+				globalVars::TIMAOverflowCooldown(3);
+				_mem[TIMER_TIMA_LOC] = 0;
+			}
+			else
+			{
+				_mem[TIMER_TIMA_LOC] = _mem[TIMER_TIMA_LOC] + 1;
+			}
+		}
+		_fallingEdgeTimerDetection = andResult;
 	}
 }
+
 
 void CPU::writeCurrentStateToLogFile()
 {
@@ -235,7 +241,6 @@ void CPU::writeCurrentStateToLogFile()
 		<< "," << std::setw(2) << static_cast<int>(mbc->read(regs.PC + 2))
 		<< "," << std::setw(2) << static_cast<int>(mbc->read(regs.PC + 3))
 		<< std::endl;
-
 }
 
 
@@ -251,6 +256,11 @@ void CPU::updateMemAndRegsAfterBoot()
 	_mem.getsRegs().H = 0x1;
 	_mem.getsRegs().L = 0x4D;
 	_mem.getsRegs().SP = 0xFFFE;
+	globalVars::DIVRegister(0xabcc);
+	globalVars::systemHalted(false);
+	_mem.getsRegs().PC = 0;
+	_mem.getsRegs().SP = 0xFFFE;
+	_fallingEdgeTimerDetection = 0;
 }
 
 void CPU::update()
@@ -260,25 +270,43 @@ void CPU::update()
 	while (currentFrameCycles < CLOCK_CYCLES_PER_FRAME)
 	{
 
-		int cycles = ExecuteNextInstruction();
+		int cycles = 0;// = handleInterrupts();
+
+		cycles += ExecuteNextInstruction();
 
 		currentFrameCycles += cycles;
 
-		updateTimers(cycles); //update timers based on cycles
+		updateTimers(cycles);
 
 		//update ppu based on cycles
 
-		if (!_opcodeFactory.getPrefix() && !systemHalted)
-		{
-			writeCurrentStateToLogFile();
-			times++;
-			//std::cout << times << std::endl;
-		}
-
-		if (_mem.IME() == 1)
-		{
-			currentFrameCycles += handleInterrupts(); //do interrupts
-		}
 	}
+
+	int_Vblank(1);
 	//ppu render screen
 }
+
+uint8_t CPU::int_Vblank() { return _mem.IF() & 1; } //bit 0
+uint8_t CPU::int_LCDCStatus() { return (_mem.IF() >> 1) & 1; } //bit 1
+uint8_t CPU::int_timerOverflow() { return (_mem.IF() >> 2) & 1; } //bit 2
+uint8_t CPU::int_serialTransfer() { return (_mem.IF() >> 3) & 1; } //bit 3
+uint8_t CPU::int_Joypad() { return (_mem.IF() >> 4) & 1; } //bit 4
+
+void CPU::int_Vblank(uint8_t val) { _mem.IF() = (_mem.IF() & ~1 | val); } //bit 0
+void CPU::int_LCDCStatus(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 1)) | (val << 1); } //bit 1
+void CPU::int_timerOverflow(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 2)) | (val << 2); }  //bit 2
+void CPU::int_serialTransfer(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 3)) | (val << 3); }  //bit 3
+void CPU::int_Joypad(uint8_t val) { _mem.IF() = (_mem.IF() & ~(1 << 4)) | (val << 4); } //bit 4
+
+//interrupts enable
+uint8_t CPU::intEnable_Vblank() { return _mem.IE() & 1; } //bit 0
+uint8_t CPU::intEnable_LCDCStatus() { return (_mem.IE() >> 1) & 1; } //bit 1
+uint8_t CPU::intEnable_timerOverflow() { return (_mem.IE() >> 2) & 1; } //bit 2
+uint8_t CPU::intEnable_serialTransfer() { return (_mem.IE() >> 3) & 1; } //bit 3
+uint8_t CPU::intEnable_Joypad() { return (_mem.IE() >> 4) & 1; } //bit 4
+
+void CPU::intEnable_Vblank(uint8_t val) { _mem.IE() = (_mem.IE() & ~1 | val); } //bit 0
+void CPU::intEnable_LCDCStatus(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 1)) | (val << 1); } //bit 1
+void CPU::intEnable_timerOverflow(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 2)) | (val << 2); }  //bit 2
+void CPU::intEnable_serialTransfer(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 3)) | (val << 3); }  //bit 3
+void CPU::intEnable_Joypad(uint8_t val) { _mem.IE() = (_mem.IE() & ~(1 << 4)) | (val << 4); } //bit 4

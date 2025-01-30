@@ -5,14 +5,7 @@
 class JumpCallOpcodes : public Opcode
 {
 public:
-	JumpCallOpcodes(Memory& mem_ref, OpcodeElementHolder& currentOpcode) : Opcode(mem_ref), _currentOpcode(currentOpcode) {
-		_strToFunc["JR"] = &JumpCallOpcodes::JR;
-		_strToFunc["RET"] = &JumpCallOpcodes::RET;
-		_strToFunc["RETI"] = &JumpCallOpcodes::RET;
-		_strToFunc["JP"] = &JumpCallOpcodes::JP;
-		_strToFunc["CALL"] = &JumpCallOpcodes::CALL;
-		_strToFunc["RST"] = &JumpCallOpcodes::RST;
-	};
+	JumpCallOpcodes(Memory& mem_ref, OpcodeElementHolder* currentOpcode);
 
 	virtual ~JumpCallOpcodes() = default;
 
@@ -20,8 +13,6 @@ public:
 	virtual void printOpcodeMnemonic() const override;
 
 private:
-	// from opcode it has a _mem copy. [Memory& _mem]
-	OpcodeElementHolder& _currentOpcode;
 
 	int JR();
 

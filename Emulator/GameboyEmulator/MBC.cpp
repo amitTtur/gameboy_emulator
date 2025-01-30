@@ -20,6 +20,7 @@ MBC::~MBC()
 
 void MBC::LoadRam(const uint8_t& ramBankNumber)
 {
+	std::cout << "loading ram bank " << ramBankNumber << " into memory." << std::endl;
 	// need to update current ram
 	for (size_t i = 0; i < RAM_BANK_SIZE; i++)
 	{
@@ -42,6 +43,8 @@ void MBC::loadBankToMem(const uint8_t& bankNumber)
 	{
 		throw GeneralException("Rom asked for a bank thats not in range WTF [MBC->loadBankToMem].", UNDEFINED_INSTRUCTION_BEHAVIOR);
 	}
+
+	std::cout << "loading rom bank " << bankNumber << " into memory." << std::endl;
 
 	size_t begin = bankNumber * MEMORY_BANK_SIZE;
 	_activeRomBank = bankNumber;

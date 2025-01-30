@@ -10,26 +10,45 @@
 *
 *********************************/
 
+Arithmetic8bit::Arithmetic8bit(Memory& mem_ref, OpcodeElementHolder* currentOpcode) : Opcode(mem_ref, currentOpcode)
+{
+    // Initialize the map with opcode strings as keys and function pointers as values
+    _strToFunc["ADD"] = &Arithmetic8bit::ADD;
+    _strToFunc["SUB"] = &Arithmetic8bit::SUB;
+    _strToFunc["AND"] = &Arithmetic8bit::AND;
+    _strToFunc["OR"] = &Arithmetic8bit::OR;
+    _strToFunc["INC"] = &Arithmetic8bit::INC;
+    _strToFunc["DEC"] = &Arithmetic8bit::DEC;
+    _strToFunc["SBC"] = &Arithmetic8bit::SBC;
+    _strToFunc["ADC"] = &Arithmetic8bit::ADC;
+    _strToFunc["XOR"] = &Arithmetic8bit::XOR;
+    _strToFunc["CP"] = &Arithmetic8bit::CP;
+    _strToFunc["DAA"] = &Arithmetic8bit::DAA;
+    _strToFunc["CPL"] = &Arithmetic8bit::CPL;
+    _strToFunc["SCF"] = &Arithmetic8bit::SCF;
+    _strToFunc["CCF"] = &Arithmetic8bit::CCF;
+}
+
 int Arithmetic8bit::run()
 {
 
-    auto it = _strToFunc.find(_currentOpcode.mnemonic);
+    auto it = _strToFunc.find(_currentOpcode->mnemonic);
 
     if (it != _strToFunc.end()) {
         // Call the function pointed to by the iterator
         (this->*(it->second))(); // run the opcode
-        return _currentOpcode.cycles;
+        return _currentOpcode->cycles;
     }
     
-    throw GeneralException("Unsupported opcode: " + _currentOpcode.mnemonic + ", had appeared at [run-> arithmetic8Bit]", UNKNOWN_OPCODE);
+    throw GeneralException("Unsupported opcode: " + _currentOpcode->mnemonic + ", had appeared at [run-> arithmetic8Bit]", UNKNOWN_OPCODE);
 }
 
 void Arithmetic8bit::printOpcodeMnemonic() const
 {
-    std::cout << _currentOpcode.mnemonic << " ";
-    for (int i = 0; i < _currentOpcode.operands.size(); i++)
+    std::cout << _currentOpcode->mnemonic << " ";
+    for (int i = 0; i < _currentOpcode->operands.size(); i++)
     {
-        std::cout << _currentOpcode.operands[i].name << " ";
+        std::cout << _currentOpcode->operands[i].name << " ";
     }
     std::cout << std::endl;
 }
@@ -41,7 +60,7 @@ void Arithmetic8bit::OR()
     // Retrieve operands
     // no need will always be the register A
     // operandReturn<uint8_t> operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     uint8_t result = regs.A | operand2.value;
 
@@ -60,7 +79,7 @@ void Arithmetic8bit::INC()
     RegisterFile& regs = _mem.getsRegs();
 
     // Retrieve operands
-    operandReturn<uint8_t> operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
+    operandReturn<uint8_t> operand1 = _mem.get8BitOperand(_currentOpcode->operands[0]);
 
     uint8_t result = operand1.value + 1;
 
@@ -85,7 +104,7 @@ void Arithmetic8bit::DEC()
     RegisterFile& regs = _mem.getsRegs();
 
     // Retrieve operands
-    operandReturn<uint8_t> operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
+    operandReturn<uint8_t> operand1 = _mem.get8BitOperand(_currentOpcode->operands[0]);
 
     uint8_t result = operand1.value - 1;
 
@@ -113,7 +132,7 @@ void Arithmetic8bit::ADD()
     // Retrieve operands
     // will always be resiter A
     // uint8_t& operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     // Perform addition
     uint8_t result = regs.A + operand2.value;
@@ -139,7 +158,7 @@ void Arithmetic8bit::SUB()
     // Retrieve operands
     // reg A
     // uint8_t& operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     // Perform subtraction
     uint8_t result = regs.A - operand2.value;
@@ -166,7 +185,7 @@ void Arithmetic8bit::SBC()
 
     // Retrieve operands
     //uint8_t& operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     // Perform subtraction
     uint8_t result = regs.A - operand2.value - regs.CF();
@@ -190,7 +209,7 @@ void Arithmetic8bit::ADC()
 
     // Retrieve operands
     // uint8_t& operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     // Perform subtraction
     uint8_t result = regs.A + operand2.value + regs.CF();
@@ -216,7 +235,7 @@ void Arithmetic8bit::AND()
 
     // Retrieve operands
     //uint8_t& operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     uint8_t result = regs.A & operand2.value;
 
@@ -236,7 +255,7 @@ void Arithmetic8bit::XOR()
 
     // Retrieve operands
     //uint8_t& operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     uint8_t result = regs.A ^ operand2.value;
 
@@ -257,7 +276,7 @@ void Arithmetic8bit::CP()
 
     // Retrieve operands
     //uint8_t& operand1 = _mem.get8BitOperand(_currentOpcode.operands[0]);
-    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode.operands[1]);
+    operandReturn<uint8_t> operand2 = _mem.get8BitOperand(_currentOpcode->operands[1]);
 
     // Perform subtraction
     uint8_t result = regs.A - operand2.value;
@@ -328,5 +347,4 @@ void Arithmetic8bit::CCF()
     regs.CF(!regs.CF());
     regs.HF(false);
     regs.NF(false);
-
 }

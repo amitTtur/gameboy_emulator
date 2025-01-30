@@ -113,6 +113,9 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,7 +156,10 @@
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MiscOpcodes.cpp" />
     <ClCompile Include="NoMBC.cpp" />
+    <ClCompile Include="Opcode.cpp" />
     <ClCompile Include="OpcodeFactory.cpp" />
+    <ClCompile Include="PPU.cpp" />
+    <ClCompile Include="Screen.cpp" />
     <ClCompile Include="ShiftRotate8bit.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -177,7 +183,9 @@
     <ClInclude Include="NoMBC.h" />
     <ClInclude Include="Opcode.h" />
     <ClInclude Include="OpcodeFactory.h" />
+    <ClInclude Include="PPU.h" />
     <ClInclude Include="Register.hpp" />
+    <ClInclude Include="Screen.h" />
     <ClInclude Include="ShiftRotate8bit.h" />
   </ItemGroup>
   <ItemGroup>

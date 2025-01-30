@@ -10,7 +10,7 @@
 #include "CodesAndDefines.h"
 #include "CartridgeView.h"
 
-#define DOWNLOADS_FOLDER_PATH_CODE "374DE290-123F-4565-9164-39C4925E467B"
+//#define DOWNLOADS_FOLDER_PATH_CODE "374DE290-123F-4565-9164-39C4925E467B"
 
 
 class MBC
@@ -65,8 +65,6 @@ private:
 	// on hold at the moment
 	// ONLY USE 1 TIME AT THE START OF THE RUN
 	 void loadBank0();
-
-	 
 
 
 	 //TODO: add a bios load at 0 - 0xFF

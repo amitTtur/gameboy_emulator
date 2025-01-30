@@ -4,16 +4,19 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include "CPU.h"
+#include "Screen.h"
+#include "PPU.h"
 
 
 class Gameboy { // will be expanded
 public:
-	Gameboy(const std::string romPath) : _running(true), _cpu(romPath), _romPath(romPath) {}
+	Gameboy(const std::string romPath);
 
 	void run();
 
 private:
 	const std::string _romPath;
-	bool _running;
 	CPU _cpu;
+	PPU _ppu;
+	Screen _sdlScreen;
 };

@@ -42,6 +42,12 @@
 #define TIMER_TMA_LOC 0xFF06 //location of timer modulo
 #define TIMER_TAC_LOC 0xFF07 //location of timer control
 
+//screen
+#define SCREEN_HEIGHT 144
+#define SCREEN_WIDTH 160
+#define SCREEN_TO_WORLD_PIXEL 4
+#define WINDOW_NAME "gameboy"
+
 //
 //// memory offesets
 //#define RAM_OFFSET 0x8000
