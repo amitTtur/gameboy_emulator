@@ -5,6 +5,7 @@ cartridgeView::cartridgeView(const uint8_t* romCpy) : _romCpy(romCpy)
     _type = getType();
     _romSize = getRomSize();
     _ramSize = getRamSize();
+    _ramSupport = getRamSupport();
     printROMdetails();
 }
 
@@ -34,10 +35,11 @@ bool cartridgeView::checkNintendoSymbol() const
 
 void cartridgeView::printROMdetails() const
 {
-    std::cout << "this rom uses mbc" << _type << std::endl;
+    int tmp = int(_type);
+    std::cout << "this rom uses mbc" << tmp << std::endl;
     std::cout << "this rom holds " << _romSize << " banks of rom, which is " << _romSize*16 << "kb of memory." << std::endl;
-    std::cout << "this rom holds " << _ramSize << " banks of ram, which is " << _romSize * 8 << "kb of exteranal ram." << std::endl;
-
+    std::cout << "this rom holds " << _ramSize << " banks of ram, which is " << _ramSize * 8 << "kb of exteranal ram." << std::endl;
+    std::cout << "this rom turned " << (_ramSupport ? "on" : "off") << " ram support on initialization" << std::endl;
 }
 
 MbcType cartridgeView::getType(const uint8_t* headersCopy)
@@ -232,4 +234,12 @@ RamSize cartridgeView::getRamSize()
         std::cout << "Cartridge view encounterd a unrecognized ram size... please check the rom." << std::endl;
         return RamSize::None;
     }
+}
+
+bool cartridgeView::getRamSupport()
+{
+    int mode = _romCpy[cartridge_type];
+    return mode == 2 || mode == 3 || mode == 8 || mode == 9 || mode == 0x10 || 
+        mode == 0x12 || mode == 0x13 || mode == 0x1A || mode == 0x1B || mode == 0x1D ||
+        mode == 0x1E;
 }

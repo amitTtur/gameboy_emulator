@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>17.0</VCProjectVersion>
+    <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{25f68e7c-efb4-41a3-aa40-e52c12194ba8}</ProjectGuid>
+    <ProjectGuid>{7011e020-e26e-4920-8841-11c7269dfae3}</ProjectGuid>
     <RootNamespace>GameboyEmulator</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -74,10 +74,6 @@
     <IncludePath>$(ProjectDir)SDL2\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)SDL2\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)SDL2\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)SDL2\lib;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -109,13 +105,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>MaxSpeed</Optimization>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,61 +134,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="arithmetic16bit.cpp" />
-    <ClCompile Include="arithmetic8bit.cpp" />
-    <ClCompile Include="CartridgeView.cpp" />
-    <ClCompile Include="CPU.cpp" />
-    <ClCompile Include="Gameboy.cpp" />
-    <ClCompile Include="globalVars.cpp" />
-    <ClCompile Include="JumpCallOpcodes.cpp" />
-    <ClCompile Include="Load16Bit.cpp" />
-    <ClCompile Include="Load8Bit.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="MBC.cpp" />
-    <ClCompile Include="MBC1.cpp" />
-    <ClCompile Include="Memory.cpp" />
-    <ClCompile Include="MiscOpcodes.cpp" />
-    <ClCompile Include="NoMBC.cpp" />
-    <ClCompile Include="Opcode.cpp" />
-    <ClCompile Include="OpcodeFactory.cpp" />
-    <ClCompile Include="PPU.cpp" />
-    <ClCompile Include="Screen.cpp" />
-    <ClCompile Include="ShiftRotate8bit.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="arithmetic16bit.h" />
-    <ClInclude Include="arithmetic8bit.h" />
-    <ClInclude Include="CartridgeView.h" />
-    <ClInclude Include="CodesAndDefines.h" />
-    <ClInclude Include="CPU.h" />
-    <ClInclude Include="dataStructures.hpp" />
-    <ClInclude Include="Gameboy.h" />
-    <ClInclude Include="GeneralException.h" />
-    <ClInclude Include="globalVars.h" />
-    <ClInclude Include="json.hpp" />
-    <ClInclude Include="JumpCallOpcodes.h" />
-    <ClInclude Include="Load16Bit.h" />
-    <ClInclude Include="Load8Bit.h" />
-    <ClInclude Include="MBC.h" />
-    <ClInclude Include="MBC1.h" />
-    <ClInclude Include="Memory.h" />
-    <ClInclude Include="MiscOpcodes.h" />
-    <ClInclude Include="NoMBC.h" />
-    <ClInclude Include="Opcode.h" />
-    <ClInclude Include="OpcodeFactory.h" />
-    <ClInclude Include="PPU.h" />
-    <ClInclude Include="Register.hpp" />
-    <ClInclude Include="Screen.h" />
-    <ClInclude Include="ShiftRotate8bit.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="logFile.txt" />
-    <Text Include="opcodes.json" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="01-special.gb" />
     <None Include="02-interrupts.gb" />
@@ -204,7 +148,55 @@
     <None Include="09-op r,r.gb" />
     <None Include="10-bit ops.gb" />
     <None Include="11-op a,(hl).gb" />
+    <None Include="bits_bank1.gb" />
     <None Include="cpu_instrs.gb" />
+    <None Include="dmg_boot.bin" />
+    <None Include="instr_timing.gb" />
+    <None Include="megaman.gb" />
+    <None Include="opcodes.json" />
+    <None Include="SDL2.dll" />
+    <None Include="Super Mario Land (World).gb" />
+    <None Include="super_mario.gb" />
+    <None Include="tetris.gb" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CartridgeView.cpp" />
+    <ClCompile Include="CPU.cpp" />
+    <ClCompile Include="Gameboy.cpp" />
+    <ClCompile Include="globalVars.cpp" />
+    <ClCompile Include="input.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MBC.cpp" />
+    <ClCompile Include="MBC1.cpp" />
+    <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="NoMBC.cpp" />
+    <ClCompile Include="OpcodeHandler.cpp" />
+    <ClCompile Include="PPU.cpp" />
+    <ClCompile Include="PPURegisters.cpp" />
+    <ClCompile Include="Screen.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CartridgeView.h" />
+    <ClInclude Include="CodesAndDefines.h" />
+    <ClInclude Include="CPU.h" />
+    <ClInclude Include="dataStructures.hpp" />
+    <ClInclude Include="Gameboy.h" />
+    <ClInclude Include="GeneralException.h" />
+    <ClInclude Include="globalVars.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="MBC.h" />
+    <ClInclude Include="MBC1.h" />
+    <ClInclude Include="Memory.h" />
+    <ClInclude Include="NoMBC.h" />
+    <ClInclude Include="OpcodeHandler.h" />
+    <ClInclude Include="PPU.h" />
+    <ClInclude Include="PPURegisters.h" />
+    <ClInclude Include="Register.hpp" />
+    <ClInclude Include="Screen.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="logFile.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

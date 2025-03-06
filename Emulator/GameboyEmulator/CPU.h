@@ -2,9 +2,10 @@
 
 #include "Register.hpp"
 #include "Memory.h"
-#include "OpcodeFactory.h"
+#include "OpcodeHandler.h"
 #include "CodesAndDefines.h"
 #include "globalVars.h"
+#include "PPU.h"
 
 #ifndef CPU_H
 #define CPU_H
@@ -16,43 +17,20 @@ public:
 	// need to have a rom path
 	CPU() = delete;
 
-	CPU(const std::string& romPath);
+	CPU(PPU& ppu, Memory& mem);
 	~CPU();
 	
 	void update();
 
 
-	//interrupts set
-	uint8_t int_Vblank();
-	uint8_t int_LCDCStatus();
-	uint8_t int_timerOverflow();
-	uint8_t int_serialTransfer();
-	uint8_t int_Joypad();
-
-	void int_Vblank(uint8_t val);
-	void int_LCDCStatus(uint8_t val);
-	void int_timerOverflow(uint8_t val);
-	void int_serialTransfer(uint8_t val);
-	void int_Joypad(uint8_t val);
-
-	//interrupts enable
-	uint8_t intEnable_Vblank();
-	uint8_t intEnable_LCDCStatus();
-	uint8_t intEnable_timerOverflow();
-	uint8_t intEnable_serialTransfer();
-	uint8_t intEnable_Joypad();
-
-	void intEnable_Vblank(uint8_t val);
-	void intEnable_LCDCStatus(uint8_t val);
-	void intEnable_timerOverflow(uint8_t val);
-	void intEnable_serialTransfer(uint8_t val);
-	void intEnable_Joypad(uint8_t val);
 
 private:
-	Memory _mem;
-	OpcodeFactory _opcodeFactory;
-
+	
+	Memory& _mem;
+	OpcodeHandler _opcodeHandler;
+	PPU& _ppu;
 	uint8_t _fallingEdgeTimerDetection; //used to keep the calculation of the TIMA increase between frames
+
 
 	void updateMemAndRegsAfterBoot();
 	int ExecuteNextInstruction();
@@ -62,6 +40,10 @@ private:
 	// for tests
 	std::ofstream logFile;
 	void writeCurrentStateToLogFile();
+
+	bool interruptPending();
+
+	void doDma();
 };
 
 #endif // !CPU_H

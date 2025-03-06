@@ -35,6 +35,18 @@ public:
 	static bool systemHalted();
 	static void systemHalted(bool b);
 
+	static bool vramAccess();
+	static void vramAccess(bool b);
+
+	static bool oamAccess();
+	static void oamAccess(bool b);
+
+
+	static bool dma();
+	static void dma(bool b);
+
+	static int times;
+
 private:
 
 	static bool _running;
@@ -58,5 +70,13 @@ private:
 	static bool _haltBug;
 
 	static bool _systemHalted;
+
+	// ppu allow, false no ,true yes
+	// oam means there is a limited space that the cpu can get in vram, but
+	// if vrram is on the oam is also locked :)
+	static bool _vramAccess;
+	static bool _oamAccess;
+
+	static bool _dma;
 };
 #endif

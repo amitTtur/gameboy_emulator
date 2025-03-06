@@ -36,6 +36,32 @@ public:
 	Register<uint8_t>& IE() { return _IE; };
 	Register<uint8_t>& IF() { return _IF; };
 
+	//interrupts set
+	uint8_t int_Vblank();
+	uint8_t int_LCDCStatus();
+	uint8_t int_timerOverflow();
+	uint8_t int_serialTransfer();
+	uint8_t int_Joypad();
+
+	void int_Vblank(uint8_t val);
+	void int_LCDCStatus(uint8_t val);
+	void int_timerOverflow(uint8_t val);
+	void int_serialTransfer(uint8_t val);
+	void int_Joypad(uint8_t val);
+
+	//interrupts enable
+	uint8_t intEnable_Vblank();
+	uint8_t intEnable_LCDCStatus();
+	uint8_t intEnable_timerOverflow();
+	uint8_t intEnable_serialTransfer();
+	uint8_t intEnable_Joypad();
+
+	void intEnable_Vblank(uint8_t val);
+	void intEnable_LCDCStatus(uint8_t val);
+	void intEnable_timerOverflow(uint8_t val);
+	void intEnable_serialTransfer(uint8_t val);
+	void intEnable_Joypad(uint8_t val);
+
 	MBC* getMBC();
 private:
 	uint8_t _mem[0x10000];

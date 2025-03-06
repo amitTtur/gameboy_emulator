@@ -4,7 +4,9 @@ Memory::Memory(const std::string& romPath) :
 	_IE("IE", _mem[INTERRUPT_ENABLE_LOC]), _IF("IF", _mem[INTERRUPT_FLAG_LOC]) 
 {
 	_IME = 1;
-
+	_IF = 0xe1;
+	_IE = 0;
+	_mem[BG_PLATTE_LOC] = 0xfc;
 	switch (cartridgeView::getType(MBC::getRomHeaders(romPath)))
 	{
 	case mbc1:
@@ -176,3 +178,28 @@ MBC* Memory::getMBC()
 {
 	return _mbc;
 }
+
+uint8_t Memory::int_Vblank() { return IF() & 1; } //bit 0
+uint8_t Memory::int_LCDCStatus() { return (IF() >> 1) & 1; } //bit 1
+uint8_t Memory::int_timerOverflow() { return (IF() >> 2) & 1; } //bit 2
+uint8_t Memory::int_serialTransfer() { return (IF() >> 3) & 1; } //bit 3
+uint8_t Memory::int_Joypad() { return (IF() >> 4) & 1; } //bit 4
+
+void Memory::int_Vblank(uint8_t val) { IF() = (IF() & ~1 | val); } //bit 0
+void Memory::int_LCDCStatus(uint8_t val) { IF() = (IF() & ~(1 << 1)) | (val << 1); } //bit 1
+void Memory::int_timerOverflow(uint8_t val) { IF() = (IF() & ~(1 << 2)) | (val << 2); }  //bit 2
+void Memory::int_serialTransfer(uint8_t val) { IF() = (IF() & ~(1 << 3)) | (val << 3); }  //bit 3
+void Memory::int_Joypad(uint8_t val) { IF() = (IF() & ~(1 << 4)) | (val << 4); } //bit 4
+
+//interrupts enable
+uint8_t Memory::intEnable_Vblank() { return IE() & 1; } //bit 0
+uint8_t Memory::intEnable_LCDCStatus() { return (IE() >> 1) & 1; } //bit 1
+uint8_t Memory::intEnable_timerOverflow() { return (IE() >> 2) & 1; } //bit 2
+uint8_t Memory::intEnable_serialTransfer() { return (IE() >> 3) & 1; } //bit 3
+uint8_t Memory::intEnable_Joypad() { return (IE() >> 4) & 1; } //bit 4
+
+void Memory::intEnable_Vblank(uint8_t val) { IE() = (IE() & ~1 | val); } //bit 0
+void Memory::intEnable_LCDCStatus(uint8_t val) { IE() = (IE() & ~(1 << 1)) | (val << 1); } //bit 1
+void Memory::intEnable_timerOverflow(uint8_t val) { IE() = (IE() & ~(1 << 2)) | (val << 2); }  //bit 2
+void Memory::intEnable_serialTransfer(uint8_t val) { IE() = (IE() & ~(1 << 3)) | (val << 3); }  //bit 3
+void Memory::intEnable_Joypad(uint8_t val) { IE() = (IE() & ~(1 << 4)) | (val << 4); } //bit 4

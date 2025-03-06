@@ -7,7 +7,10 @@ uint16_t globalVars::_DIVRegister;
 uint8_t globalVars::_TIMAOverflowCooldown;
 bool globalVars::_systemHalted;
 bool globalVars::_haltBug;
-
+bool globalVars::_vramAccess = true;
+bool globalVars::_oamAccess = true;
+bool globalVars::_dma = false;
+int globalVars::times = 0;
 
 bool globalVars::running()
 {
@@ -77,4 +80,34 @@ bool globalVars::systemHalted()
 void globalVars::systemHalted(bool b)
 {
 	_systemHalted = b;
+}
+
+bool globalVars::vramAccess()
+{
+	return _vramAccess;
+}
+
+void globalVars::vramAccess(bool b)
+{
+	_vramAccess = b;
+}
+
+bool globalVars::oamAccess()
+{
+	return _oamAccess;
+}
+
+void globalVars::oamAccess(bool b)
+{
+	_oamAccess = b;
+}
+
+void globalVars::dma(bool b)
+{
+	_dma = b;
+}
+
+bool globalVars::dma()
+{
+	return _dma;
 }

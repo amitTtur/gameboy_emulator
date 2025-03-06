@@ -4,10 +4,10 @@ void Screen::makeScreen()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-    window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * SCREEN_TO_WORLD_PIXEL, SCREEN_HEIGHT * SCREEN_TO_WORLD_PIXEL, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * SCREEN_TO_WORLD_PIXEL, SCREEN_HEIGHT * SCREEN_TO_WORLD_PIXEL, SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);  // black background
+    SDL_SetRenderDrawColor(renderer, COLOR_WHITE);  // white background
     SDL_RenderClear(renderer);
 
     std::fill(frameBufferBefore, frameBufferBefore + SCREEN_WIDTH * SCREEN_HEIGHT, 0);
@@ -38,7 +38,7 @@ void Screen::updateScreen(uint8_t frameBuffer[SCREEN_WIDTH * SCREEN_HEIGHT])
         box.h = 1;
 
         // Clear the screen (black background)
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+        SDL_SetRenderDrawColor(renderer, COLOR_WHITE);
         SDL_RenderClear(renderer);
 
         // Now we loop through the frame buffer and draw pixels with the correct color
@@ -47,25 +47,25 @@ void Screen::updateScreen(uint8_t frameBuffer[SCREEN_WIDTH * SCREEN_HEIGHT])
             // Choose the color based on the value in the frame buffer
             switch (frameBufferAfter[i])
             {
-            case 0:
+            case 3:
                 // Black
-                SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-                break;
-            case 1:
-                // Dark grey
-                SDL_SetRenderDrawColor(renderer, 0x25, 0x25, 0x25, 0xFF);
+                SDL_SetRenderDrawColor(renderer, COLOR_BLACK);
                 break;
             case 2:
-                // Light grey
-                SDL_SetRenderDrawColor(renderer, 0xD0, 0xD0, 0xD0, 0xFF);
+                // Dark gray
+                SDL_SetRenderDrawColor(renderer, COLOR_DARK_GRAY);
                 break;
-            case 3:
+            case 1:
+                // Light gray
+                SDL_SetRenderDrawColor(renderer, COLOR_LIGHT_GRAY);
+                break;
+            case 0:
                 // White
-                SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                SDL_SetRenderDrawColor(renderer, COLOR_WHITE);
                 break;
             default:
                 // If the frameBuffer contains any other value, treat it as black
-                SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+                SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0xff);
                 break;
             }
 
@@ -82,4 +82,14 @@ void Screen::updateScreen(uint8_t frameBuffer[SCREEN_WIDTH * SCREEN_HEIGHT])
 
         std::swap(frameBufferBefore, frameBufferAfter);
     }
+}
+
+SDL_Window* Screen::getWindow()
+{
+    return window;
+}
+
+SDL_Renderer* Screen::getRenderer()
+{
+    return renderer;
 }

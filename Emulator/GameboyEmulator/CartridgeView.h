@@ -106,6 +106,7 @@ private:
 	MbcType getType();
 	RomSize getRomSize();
 	RamSize getRamSize();
+	bool getRamSupport();
 };
 
 
