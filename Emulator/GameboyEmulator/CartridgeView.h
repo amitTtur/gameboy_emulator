@@ -86,6 +86,7 @@ public:
 	RamSize _ramSize;
 	bool _ramSupport;
 	bool _timerSupport; // MBC3 only feature (0xF and 0x10 modes only)
+	bool _batterySupport; // if the rom is with save files
 	/// <summary>
 	/// in the gameboy cartridge also had a battery option, which is basicily a autosave function.
 	/// in this emulator the user will decide if to save a copy of the current rom.
@@ -107,6 +108,7 @@ private:
 	RomSize getRomSize();
 	RamSize getRamSize();
 	bool getRamSupport();
+	void getBatterySupport();
 };
 
 

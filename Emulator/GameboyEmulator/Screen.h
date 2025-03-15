@@ -10,7 +10,10 @@
 class Screen
 {
 public:
-	void makeScreen();
+	//inits the screen
+	void makeScreen(int pixelToScreen, bool palleteSwap);
+
+	//updates the screen
 	void updateScreen(uint8_t frameBuffer[SCREEN_WIDTH * SCREEN_HEIGHT]);
 
 	SDL_Window* getWindow();
@@ -20,11 +23,9 @@ private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 	SDL_Texture* texture;
-
 	uint8_t frameBufferBefore[SCREEN_WIDTH * SCREEN_HEIGHT];
 	uint8_t frameBufferAfter[SCREEN_WIDTH * SCREEN_HEIGHT];
-
-	SDL_Color _colorBlack;
+	bool _greenPallete;
 };
 
 #endif // !SCREENH

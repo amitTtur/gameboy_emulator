@@ -17,7 +17,11 @@ int CPU::ExecuteNextInstruction()
 
 	try
 	{
-		cycles = handleInterrupts();
+		if (!_opcodeHandler.getPrefix())
+		{
+			cycles = handleInterrupts();
+			//DO NOT HANDLE INTERRUPTS AFTER PREFIX	
+		}
 		if (globalVars::systemHalted())
 		{
 			return 4;
@@ -44,10 +48,6 @@ int CPU::ExecuteNextInstruction()
 		return 4;
 	}
 	
-
-	//std::cout << "" << _mem.getsRegs().PC << std::endl;
-
-	//return cycles;
 }
 
 int CPU::handleInterrupts()
@@ -63,14 +63,13 @@ int CPU::handleInterrupts()
 	auto performCall = [&](uint8_t n) 
 	{
 
-		//std::cout << "interrupt triggerd" << std::endl;
 		globalVars::systemHalted(false);
 		_mem.IME(0);
 
 		uint16_t pcAfterCurrentOpcode = regs.PC;
 
 		regs.SP -= 1;
-		_mem.getMBC()->write(regs.SP, (pcAfterCurrentOpcode >> 8) & 0xFF); // High byte
+		_mem.getMBC()->write(regs.SP, (pcAfterCurrentOpcode >> 8) & 0xFF);
 		regs.SP -= 1;
 		_mem.getMBC()->write(regs.SP, pcAfterCurrentOpcode & 0xFF);
 
@@ -130,6 +129,16 @@ void CPU::updateTimers(uint8_t tCycles)
 {
 	for (int i = 0; i < tCycles; i++)
 	{
+		globalVars::clock++;
+		if (globalVars::clock >= CLOCK_CYCLES_PER_SECOND)
+		{
+			globalVars::clock %= CLOCKS_PER_SEC;
+			if (globalVars::canIncreaseMbc3Timer())
+			{
+				globalVars::setMBC3Timer(globalVars::getMBC3Timer() + 1);
+			}
+		}
+
 		// DIV register update (equivalent to SYSCLK)
 		globalVars::DIVRegister(globalVars::DIVRegister() + 1);
 		_mem[TIMER_DIV_LOC] = uint8_t(globalVars::DIVRegister() >> 8);
@@ -228,6 +237,8 @@ void CPU::doDma()
 
 void CPU::updateMemAndRegsAfterBoot()
 {
+	_fallingEdgeTimerDetection = 0;
+
 	_mem.getsRegs().PC = 0x100;
 	_mem.getsRegs().A = 0x1;
 	_mem.getsRegs().B = 0x0;
@@ -239,11 +250,25 @@ void CPU::updateMemAndRegsAfterBoot()
 	_mem.getsRegs().H = 0x1;
 	_mem.getsRegs().L = 0x4D;
 	_mem.getsRegs().SP = 0xFFFE;
-	globalVars::DIVRegister(0xabcc);
+
 	_mem[TIMER_TAC_LOC] = 0xf8;
+	_mem[INPUT_REG_LOC] = 0xfc;
+	_mem[INTERRUPT_ENABLE_LOC] = 0;
+	_mem[INTERRUPT_FLAG_LOC] = 0xe1;
+	_mem[BG_PLATTE_LOC] = 0xfc;
+	_mem[LY_LOC] = 0x91;
+	_mem[LYC_LOC] = 0;
+	_mem[SCX_LOC] = 0;
+	_mem[SCY_LOC] = 0;
+	_mem[WX_LOC] = 0;
+	_mem[WY_LOC] = 0;
+
+
+	globalVars::DIVRegister(0xabcc);
 	globalVars::systemHalted(false);
 	globalVars::dma(false);
-	_fallingEdgeTimerDetection = 0;
+	globalVars::padState(0);
+
 }
 
 void CPU::update()
@@ -252,9 +277,6 @@ void CPU::update()
 
 	while (currentFrameCycles < CLOCK_CYCLES_PER_FRAME)
 	{
-
-		globalVars::times++;
-
 		int cycles = ExecuteNextInstruction();
 
 		currentFrameCycles += cycles;

@@ -35,12 +35,13 @@ writing to those address would affect the mbc registers
 class MBC1 : public MBC
 {
 public:
-	MBC1(uint8_t* memory, const std::string& romPath);
+	MBC1(uint8_t* memory, const std::string& romPath, const std::string& saveFolderPath, const bool saveFlag);
 
 	virtual MBC* getMBC() override;
 
 private:
 	virtual void updateBanks() override;
+	virtual void bankSwitchUpdate(const uint16_t& address, const uint8_t& value) override;
 };
 
 

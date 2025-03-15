@@ -4,7 +4,6 @@
 #include <set>
 #include "Memory.h"
 
-
 #include "./CodesAndDefines.h"
 using json = nlohmann::json;
 
@@ -27,24 +26,31 @@ public:
 
 private:
 
-	bool _prefix; // if the previous command was prefix, do a prefix command in the next oppcode executed.
+	// if the previous command was prefix, do a prefix command in the next oppcode executed.
+	bool _prefix;
 
 	Memory& _mem;
 
 	OpcodeElementHolder* _currentOpcode;
 
+	//opcodes map
 	std::pair<int (OpcodeHandler::*)(), OpcodeElementHolder> _opcodes[0x100];
 	std::pair<int (OpcodeHandler::*)(), OpcodeElementHolder> _CBopcodes[0x100];
 
+	//for easy conversion
 	std::map<std::string, int (OpcodeHandler::*)()> _mnemonicToFunc;
 
+	//init opcode map with operands
 	void initStrToFunc();
 	void initializeOpcodes();
+
+	//json handling
 	inline json getOpcodesJsonContents();
 
+	//check for operands
 	bool areOperands16bit();
 
-
+	//arithmetic
 	int OR();
 	int INC();
 	int DEC();
@@ -60,30 +66,20 @@ private:
 	int SCF();
 	int CCF();
 
-	int INC_16();
-	int DEC_16();
-	int ADD_16();
-
+	//jumps
 	int JR();
 	int RET(); // incldues RETI in it
 	int JP();
 	int CALL();
 	int RST();
 
+	//loads
 	int LD();
-
-	int LD_16();
 	int POP();
 	int PUSH();
 	int specialLD();
 
-	int NOP();
-	int STOP();
-	int HALT();
-	int PREFIX();
-	int DI();
-	int EI();
-
+	//shifts and rotates
 	int RLC();
 	int RRC();
 	int RL();
@@ -99,7 +95,15 @@ private:
 	int RRCA();
 	int RLA();
 	int RRA();
+
+	//misc
+	int NOP();
+	int STOP();
+	int HALT();
+	int PREFIX();
+	int DI();
+	int EI();
 };
 
 
-#endif // !OPCODE_FACTORY
+#endif

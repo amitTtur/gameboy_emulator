@@ -1,22 +1,42 @@
 #include "Memory.h"
 
-Memory::Memory(const std::string& romPath) : 
-	_IE("IE", _mem[INTERRUPT_ENABLE_LOC]), _IF("IF", _mem[INTERRUPT_FLAG_LOC]) 
+Memory::Memory() : _IE("IE", _mem[INTERRUPT_ENABLE_LOC]), _IF("IF", _mem[INTERRUPT_FLAG_LOC]) 
 {
 	_IME = 1;
-	_IF = 0xe1;
-	_IE = 0;
-	_mem[BG_PLATTE_LOC] = 0xfc;
+}
+
+Memory::~Memory()
+{
+	delete _mbc;
+}
+
+void Memory::init(const std::string& romPath, const std::string& saveFolderPath, const bool saveFlag)
+{
 	switch (cartridgeView::getType(MBC::getRomHeaders(romPath)))
 	{
 	case mbc1:
 	{
-		_mbc = new MBC1(_mem, romPath);
+		_mbc = new MBC1(_mem, romPath,saveFolderPath,saveFlag);
 		break;
 	}
 	case romOnly:
 	{
-		_mbc = new NoMBC(_mem, romPath);
+		_mbc = new NoMBC(_mem, romPath, saveFolderPath, saveFlag);
+		break;
+	}
+	case mbc2:
+	{
+		_mbc = new MBC2(_mem, romPath, saveFolderPath, saveFlag);
+		break;
+	}
+	case mbc3:
+	{
+		_mbc = new MBC3(_mem, romPath, saveFolderPath, saveFlag);
+		break;
+	}
+	case mbc5:
+	{
+		_mbc = new MBC5(_mem, romPath, saveFolderPath, saveFlag);
 		break;
 	}
 	default:
@@ -24,11 +44,6 @@ Memory::Memory(const std::string& romPath) :
 		throw GeneralException("The selected mbc type isn't supported.", MBC_NOT_SUPPORTED);
 	}
 	}
-}
-
-Memory::~Memory()
-{
-	delete _mbc;
 }
 
 uint8_t& Memory::operator[](const uint16_t& index)

@@ -1,12 +1,33 @@
 #include "MBC.h"
 
-MBC::MBC(uint8_t* memory, const std::string& romPath) : _mem(memory), _romView(getRomHeaders(romPath)), _activeRomBank(1)
+MBC::MBC(uint8_t* memory, const std::string& romPath, const std::string& saveFolderPath, const bool saveFlag) : _mem(memory), _romView(getRomHeaders(romPath)), _activeRomBank(1)
 {
 	_isNoMbc = false;
+	_saveFolderPath = saveFolderPath;
+	_saveFlag = saveFlag;
 	std::cout << "**************** MBC SETUP START ****************" << std::endl;
 	loadRomToCopy(romPath);
+
 	//loadBiosToMem();
 	resizeSram(_romView._ramSize);
+
+	//rom name extraction
+	int firstIndex = romPath.find_last_of('\\');  // or '\\' for Windows paths
+	if (firstIndex == std::string::npos) {
+		firstIndex = romPath.find_last_of('/'); // Try alternate separator
+	}
+	int lastIndex = romPath.find_last_of('.');
+
+	firstIndex = (firstIndex == std::string::npos) ? 0 : firstIndex + 1;
+	lastIndex = (lastIndex == std::string::npos) ? romPath.size() : lastIndex;
+
+	_gameName = romPath.substr(firstIndex, lastIndex - firstIndex);
+
+	if (_romView._batterySupport && _saveFlag)
+	{
+		LoadTheSave();
+	}
+
 	// loading memory bank 0 from 0x100 (so bios wont be deleted) to 0x3FFF
 	// usually rom dont have any data from 00 to 0xff cause the devs know it wouldnt be loaded
 	loadBankToMem(0,false); // there will always be a mem bank 0 so no need to check
@@ -16,10 +37,6 @@ MBC::MBC(uint8_t* memory, const std::string& romPath) : _mem(memory), _romView(g
 	_bank2 = 0;
 	_bank1 = 0;
 	_ramg = false;
-	if (_ramg && 0 < _romView._ramSize)
-	{
-		LoadRam(0);
-	}
 	_mode = 0; // start on rom mode
 
 	std::cout << "**************** MBC SETUP END ****************" << std::endl;
@@ -28,17 +45,65 @@ MBC::MBC(uint8_t* memory, const std::string& romPath) : _mem(memory), _romView(g
 MBC::~MBC()
 {
 	// no need to delete the memory because originally it is a referance
-
+	if (_romView._batterySupport && _saveFlag)
+	{
+		saveTheGame();
+	}
 }
 
 uint8_t MBC::read(const uint16_t& address) const
 {
 
+	if (address == INPUT_REG_LOC)
+	{
+		/*
+		A - 0
+		B - 1
+		SELECT - 2
+		START - 3
+		RIGHT - 4
+		LEFT - 5
+		UP - 6
+		DOWN - 7
+		*/
+
+		
+
+
+		uint8_t ret = _mem[INPUT_REG_LOC];
+		//std::cout << int(ret) << std::endl; DEBUG
+		uint8_t reversePad = ~(globalVars::padState());
+		ret &= 0xf0;
+
+		if ((ret & (1 << 4)) == 0)
+		{
+			ret |= ((reversePad >> 7) & 1) << 3; //down
+			ret |= ((reversePad >> 6) & 1) << 2; //up
+			ret |= ((reversePad >> 5) & 1) << 1; //left
+			ret |= ((reversePad >> 4) & 1) << 0; //right
+		}
+
+		if ((ret & (1 << 5)) == 0)
+		{
+			ret |= ((reversePad >> 3) & 1) << 3; //start
+			ret |= ((reversePad >> 2) & 1) << 2; //select
+			ret |= ((reversePad >> 1) & 1) << 1; //b
+			ret |= ((reversePad >> 0) & 1) << 0; //a
+		}
+
+
+		if (((ret >> 5) & 1) & ((ret >> 4) & 1))
+		{
+			ret |= 0x0f;
+		}
+
+		return ret;
+	}
 
 	// returned value when attempting to read from a rom with no mbc and no ram support is 0xFF
-	if (!_ramg && address >= 0xA000 && address < 0xC000)
+	if (address >= 0xA000 && address < 0xC000)
 	{
-		return 0xFF;
+		return readFromRam(address);
 	}
 
 	//vram
@@ -83,7 +148,7 @@ void MBC::write(const uint16_t& address, uint8_t value)
 
 	if (address < 0x8000)
 	{
-		bankSwitchUpdate(_isNoMbc, address, value);
+		bankSwitchUpdate(address, value);
 		return;
 	}
 
@@ -116,7 +181,28 @@ void MBC::write(const uint16_t& address, uint8_t value)
 
 	if (address == INPUT_REG_LOC)
 	{
-		_mem[INPUT_REG_LOC] = (_mem[INPUT_REG_LOC] & 0xf) | (value & 0x30);
+		_mem[INPUT_REG_LOC] = (value & 0x30) | 0b11000000;
+		return;
+	}
+
+	if (address == LYC_LOC)
+	{
+		_mem[address] = value;
+
+		bool comp = _mem[LY_LOC] == _mem[LYC_LOC];
+		_mem[REG_STAT_LOC] = (_mem[REG_STAT_LOC] & ~(1 << 2)) | (((comp) ? 1 : 0) << 2);
+		if (((_mem[REG_STAT_LOC] >> 6) & 1) && ((_mem[REG_STAT_LOC] >> 2) & 1))
+		{
+			//_mem[INTERRUPT_FLAG_LOC] = (_mem[INTERRUPT_FLAG_LOC] & ~(1 << 2)) | (1 << 2);
+			//_mem.int_LCDCStatus(1);
+		}
+
+		return;
+	}
+
+	if (address == REG_STAT_LOC)
+	{
+		_mem[address] = (value & 0b11111000) | (_mem[address] & 7); 
 		return;
 	}
 
@@ -130,9 +216,9 @@ void MBC::write(const uint16_t& address, uint8_t value)
 	}
 
 	// attempt to write to ram when there is no ram support or when access to ram is disabled
-	if (address >= 0xA000 && address < 0xC000 && !_ramg)
+	if (address >= 0xA000 && address < 0xC000)
 	{
-		std::cout << "rom attempeted to write to ram when the support is off... ignoring." << std::endl;
+		writeToRam(address,value);
 		return;
 	}
 	else
@@ -146,20 +232,48 @@ uint16_t MBC::read16(const uint16_t& address) const
 	return (read(address + 1) << 8) | read(address);
 }
 
+
+void MBC::writeToRam(const uint16_t& address, const uint8_t& value)
+{
+	if (!_ramg)
+	{
+		std::cout << "rom tried to write to ram when ram support is off... ignoring" << std::endl;
+	}
+	else
+	{
+		_mem[address] = value;
+	}
+}
+
+uint8_t MBC::readFromRam(const uint16_t& address) const
+{
+	if (!_ramg)
+	{
+		return 0xFF;
+	}
+	else
+	{
+		return _mem[address];
+	}
+}
+
 void MBC::resizeSram(RamSize size)
 {
 	// currently supports only mbc1 ram size
 	_sram.resize(0x2000 * size,0x0); // ram bank size * number of banks
 }
 
-void MBC::LoadRam(const uint8_t& ramBankNumber)
+void MBC::LoadRam(const uint8_t& ramBankNumber,bool saveRamBank)
 {
-	std::cout << "loading ram bank " << int(ramBankNumber) << " into memory." << std::endl;
-	// need to update current ram
-	for (size_t i = 0; i < RAM_BANK_SIZE; i++)
+	if (saveRamBank)
 	{
-		// i offset + end of rom part in cartridge + start of current ram bank
-		_sram[i + (RAM_BANK_SIZE * _activeRamBank)] = _mem[RAM_AREA_START + i];
+		//std::cout << "loading ram bank " << int(ramBankNumber) << " into memory." << std::endl;
+		// need to update current ram
+		for (size_t i = 0; i < RAM_BANK_SIZE; i++)
+		{
+			// i offset + end of rom part in cartridge + start of current ram bank
+			_sram[i + (RAM_BANK_SIZE * _activeRamBank)] = _mem[RAM_AREA_START + i];
+		}
 	}
 
 	_activeRamBank = ramBankNumber;
@@ -178,7 +292,7 @@ void MBC::loadBankToMem(const uint8_t& bankNumber, bool range)
 		throw GeneralException("Rom asked for a bank thats not in range WTF [MBC->loadBankToMem].", UNDEFINED_INSTRUCTION_BEHAVIOR);
 	}
 	int bnkcpy = int(bankNumber);
-	std::cout << "loading rom bank " << bnkcpy << " into memory." << std::endl;
+	//std::cout << "loading rom bank " << bnkcpy << " into memory." << std::endl;
 
 	size_t begin = bankNumber * MEMORY_BANK_SIZE;
 
@@ -269,70 +383,6 @@ bool MBC::checkTimerWrite(uint16_t address, uint8_t value)
 		return true;
 	}
 	return false;
-}
-
-void MBC::bankSwitchUpdate(bool noMbc, const uint16_t& address, const uint8_t& value)
-{
-	if (address <= RAM_ENABLE_HIGH && address >= RAM_ENABLE_LOW) // ram support toggle
-	{
-		_ramg = ((value & 0xF) == 0xA); // if ramg == 0xA0
-		std::cout << "program has " << (_ramg ? "enabled" : "disabled") << " ram." << std::endl;
-	}
-	else if (!noMbc)
-	{
-		if (address <= ROM_BANK_SET_HIGH && address >= ROM_BANK_SET_LOW) // rom bank select
-		{
-			_bank1 = value;
-			//std::cout << "program has set the value of bank1 to " << int(_bank1) << std::endl;
-		}
-		else if (address <= RAM_BANK_HIGH && address >= RAM_BANK_LOW) // ram bank select
-		{
-			_bank2 = value;
-			
-			//std::cout << "program has set the value of bank2 to " << int(_bank2) << std::endl;
-		}
-		else // mode select
-		{
-			_mode = value;
-			std::cout << "program set the mode to " << (_mode ? "ram" : "rom") << " managment." << std::endl;
-		}
-		updateBanks();
-	}
-}
-
-void MBC::updateBanks()
-{
-	int banks = _romView._romSize,romBank1,ramBank,romBank0; // currently holds the number of rom banks 2-512
-
-	if (banks >= 64) // if bank2 is needed in the rom bank calc, if is true then mode = 0 (rom mode)
-	{
-		romBank0 = (_mode & 1) ? (_bank2 & 3) << 5 : 0;
-		ramBank = 0;
-		romBank1 = ((_bank2 & 3) << 5) | (_bank1 & 0x1F);
-	}
-	else
-	{
-		ramBank = (_mode & 1) ? (_bank2) & 3 : 0;
-		romBank0 = 0;
-		romBank1 = _bank1 & 0x1F;
-	}
-	if (romBank1 == 0x0 || romBank1 == 0x20 || romBank1 == 0x40 || romBank1 == 0x60) { romBank1++; }
-	romBank1 &= (banks - 1);
-	romBank0 &= (banks - 1);
-	ramBank &= (_romView._ramSize-1);
-
-	if (ramBank != _activeRamBank && ramBank < _romView._ramSize)
-	{
-		LoadRam(ramBank);
-	}
-	if (romBank1 != _activeRomBank)
-	{
-		loadBankToMem(romBank1,true);
-	}
-	if (romBank0 != _activeRomBank0)
-	{
-		loadBankToMem(romBank0, false);
-	}
 }
 
 
@@ -444,6 +494,81 @@ void MBC::loadRomToCopy(const std::string& romPath)
 	romFile.close();
 	std::cout << "ROM file closed successfully!" << std::endl;
 }
+
+void MBC::saveTheGame()
+{
+	if (!_sram.size()) { return; }
+
+
+	// need to update current ram
+	for (size_t i = 0; i < RAM_BANK_SIZE; i++)
+	{
+		// i offset + end of rom part in cartridge + start of current ram bank
+		_sram[i + (RAM_BANK_SIZE * _activeRamBank)] = _mem[RAM_AREA_START + i];
+	}
+
+	// 
+	std::string saveFilePath = _saveFolderPath + _gameName + ".save";
+	
+	std::ofstream saveFile;
+	saveFile.open(saveFilePath, std::ios::binary);
+
+	if (!saveFile) {
+		std::cout << "Failed to open save file for writing at: " << saveFilePath << std::endl;
+		return;
+	}
+
+	saveFile.write(reinterpret_cast<const char*>(_sram.data()), _sram.size());
+
+	if (!saveFile.good()) {
+		std::cerr << "Error writing save file!" << std::endl;
+	}
+	else {
+		std::cout << "Game saved successfully to " << saveFilePath << std::endl;
+	}
+
+	saveFile.close();
+}
+
+void MBC::LoadTheSave()
+{
+	if (!_sram.size()) { return; }
+
+	std::string savePath = _saveFolderPath + _gameName + ".save";
+	std::ifstream saveFile(savePath, std::ios::binary);
+
+	if (!saveFile) {
+		std::cerr << "Failed to open save file for reading at: " << savePath << "\n";
+		return;
+	}
+
+	saveFile.seekg(0,std::ios::end);
+	int size = saveFile.tellg();
+	saveFile.seekg(0, std::ios::beg);
+	if(_sram.size() != size) 
+	{
+		saveFile.close();
+		std::cout << "save size doesnt match the saevvs of the game..." << std::endl;
+		return;
+	}
+
+	saveFile.read(reinterpret_cast<char*>(_sram.data()), _sram.size());
+
+	if (!saveFile.good()) {
+		std::cout << "Error reading save file!" << std::endl;
+		saveFile.close();
+		return;
+	}
+
+	if (_romView._ramSize) {
+		_activeRamBank = 0;
+		LoadRam(0, false);  // false means don't save current bank first
+	}
+
+	std::cout << "Save file loaded successfully from " << savePath << std::endl;
+	saveFile.close();
+}
+
 
 void MBC::loadBiosToMem()
 {

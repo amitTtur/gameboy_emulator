@@ -130,7 +130,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -149,9 +149,12 @@
     <None Include="10-bit ops.gb" />
     <None Include="11-op a,(hl).gb" />
     <None Include="bits_bank1.gb" />
+    <None Include="blue.gb" />
     <None Include="cpu_instrs.gb" />
+    <None Include="dmg-acid2.gb" />
     <None Include="dmg_boot.bin" />
     <None Include="instr_timing.gb" />
+    <None Include="zelda.gb" />
     <None Include="megaman.gb" />
     <None Include="opcodes.json" />
     <None Include="SDL2.dll" />
@@ -168,6 +171,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MBC.cpp" />
     <ClCompile Include="MBC1.cpp" />
+    <ClCompile Include="MBC2.cpp" />
+    <ClCompile Include="MBC3.cpp" />
+    <ClCompile Include="MBC5.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="NoMBC.cpp" />
     <ClCompile Include="OpcodeHandler.cpp" />
@@ -187,6 +193,9 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="MBC.h" />
     <ClInclude Include="MBC1.h" />
+    <ClInclude Include="MBC2.h" />
+    <ClInclude Include="MBC3.h" />
+    <ClInclude Include="MBC5.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="NoMBC.h" />
     <ClInclude Include="OpcodeHandler.h" />

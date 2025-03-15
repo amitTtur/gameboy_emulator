@@ -3,15 +3,7 @@
 PPU::PPU(Memory& _memRef, Screen& sdl) : _mem(_memRef), _statReg(_memRef), _lcdcReg(_memRef), _sdlScreen(sdl),
 _ly(_mem[LY_LOC]), _lyc(_mem[LYC_LOC]), _scx(_mem[SCX_LOC]), _scy(_mem[SCY_LOC]), _wx(_mem[WX_LOC]), _wy(_mem[WY_LOC])
 {
-	logFile.open("logFile.txt", std::ios::out);
 	resetFrameBuffer();
-	_ly = 0x91;
-	_lyc = 0;
-	_scx = 0;
-	_scy = 0;
-	_wx = 0;
-	_wy = 0;
-
 }
 
 PPU::~PPU() { logFile.close(); }
@@ -21,6 +13,13 @@ PPU::~PPU() { logFile.close(); }
 void PPU::update(uint8_t cycles)
 {
 	_allocatedCycles += cycles;
+
+	if (!_lcdcReg.getBit(7))
+	{
+		_ly = 0;
+		_statReg.setMode(2);
+		resetFrameBuffer();
+	}
 
 	switch (_statReg.getMode())
 	{
@@ -58,7 +57,6 @@ void PPU::update(uint8_t cycles)
 
 			if (_ly == 144)
 			{
-				//globalVars::dma(true);
 				_mem.int_Vblank(1);
 				_sdlScreen.updateScreen(_frameBuffer);
 				resetFrameBuffer();
@@ -164,10 +162,10 @@ void PPU::drawBackground() {
 		//find out the required pixels color, and map it to the current pallete
 		uint8_t colorBit = 7 - tilePixelX;
 		uint8_t colorValue = ((pixels2 >> colorBit) & 0x01) << 1 | ((pixels1 >> colorBit) & 0x01);
-		uint8_t paletteColor = (bgPaletteValue >> (colorValue * 2)) & 0x03;
+		//uint8_t paletteColor = (bgPaletteValue >> (colorValue * 2)) & 0x03;
 
 		//print pixel to screen
-		_frameBuffer[_ly * SCREEN_WIDTH + x] = paletteColor;
+		_frameBuffer[_ly * SCREEN_WIDTH + x] = colorValue;
 	}
 
 }
@@ -229,41 +227,49 @@ void PPU::drawWindow()
 		//getting the pixels color and mapping it to the pallete
 		uint8_t colorBit = 7 - tilePixelX;
 		uint8_t colorValue = ((pixels2 >> colorBit) & 0x01) << 1 | ((pixels1 >> colorBit) & 0x01);
-		uint8_t paletteColor = (bgPaletteValue >> (colorValue * 2)) & 0x03;
 
 		//drawing the pixel on screen
-		_frameBuffer[_ly * SCREEN_WIDTH + x] = paletteColor;
+		_frameBuffer[_ly * SCREEN_WIDTH + x] = colorValue;
 	}
 }
 
 void PPU::drawSprites()
 {
-	// Check if sprites are enabled in LCDC register
+
 	if (!_lcdcReg.getBit(1)) { return; }
 
 	// Get sprite palettes
 	uint8_t spritePalette0 = _mem[SP_PLATTE0_LOC];
 	uint8_t spritePalette1 = _mem[SP_PLATTE1_LOC];
-	 
+
+	uint8_t backgroundPalette = _mem[BG_PLATTE_LOC] & 3;
+
 	std::vector<spriteSave> spriteVector;
-	performOamSearch(spriteVector); // gets the sprites on line sorted by the lowest x to highest xpos
-	writeCurrentStateToLogFile(spriteVector);
+	performOamSearch(spriteVector);
 
 	for (char i = spriteVector.size() - 1; i >= 0; i--)
 	{
 		spriteSave tmp = spriteVector[i];
 		uint8_t firstByte = _mem[tmp.tileAddress];
-		uint8_t secondByte = _mem[tmp.tileAddress+1];
+		uint8_t secondByte = _mem[tmp.tileAddress + 1];
 		for (int j = 0; j < 8; j++)
 		{
-			// getting pallate index
-			char pixel = (((secondByte >> j) & 1) << 1) | ((firstByte >> j) & 1);
-			pixel = ((tmp.pallate ? spritePalette1 : spritePalette0) >> (pixel * 2)) & 0x3;; // pallte color
+			bool render = true;
+			int pixelX = tmp.xPos + (tmp.xFlip ? j : (7 - j));
 
-			if (pixel && !tmp.priority) // if color not 0 (if not transparent), and sprite on top of bg and window
+			if (pixelX < 0 || pixelX >= SCREEN_WIDTH) {
+				render = false;
+			}
+
+			uint16_t pixelLoc = (_ly * SCREEN_WIDTH) + pixelX;
+
+			char pixel = (((secondByte >> j) & 1) << 1) | ((firstByte >> j) & 1);
+
+			if (render && ((pixel && !tmp.priority) || (tmp.priority && _frameBuffer[pixelLoc] == 0))) 
 			{
-				// int pixelPos = (_ly * SCREEN_WIDTH) + tmp.xPos + (tmp.xFlip ? 7 - j : j);
-				_frameBuffer[(_ly * SCREEN_WIDTH) + tmp.xPos + (tmp.xFlip ? j : (7 - j))] = pixel;
+				pixel = ((tmp.pallate ? spritePalette1 : spritePalette0) >> (pixel * 2)) & 0x3; // pallte color
+
+				_frameBuffer[pixelLoc] = pixel % 4;
 			}
 		}
 	}

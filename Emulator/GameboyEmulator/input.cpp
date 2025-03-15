@@ -1,11 +1,7 @@
 #include "input.h"
 #include <bitset>
 
-inputhandler::inputhandler(Memory& memRef) : _mem(memRef), _inputReg(_mem[INPUT_REG_LOC])
-{
-	_inputReg = 0xcf;
-	_padState = 0;
-}
+inputhandler::inputhandler(Memory& memRef) : _mem(memRef), _inputReg(_mem[INPUT_REG_LOC]) {}
 
 /*
 A - 0
@@ -58,7 +54,7 @@ void inputhandler::handleInputs(SDL_Event& event)
 		default:
 			break;
 		}
-		debugInputs();
+		//debugInputs();
 	}
 	else if (event.type == SDL_KEYUP)
 	{
@@ -98,7 +94,7 @@ void inputhandler::handleInputs(SDL_Event& event)
 		default:
 			break;
 		}
-		debugInputs();
+		//debugInputs();
 	}
 }
 
@@ -106,7 +102,7 @@ void inputhandler::debugInputs()
 {
 	std::cout << 
 		"inputreg: " << std::bitset<8>(_inputReg) << std::endl <<
-		"pad state: " << std::bitset<8>(_padState) <<
+		"pad state: " << std::bitset<8>(globalVars::padState()) <<
 		std::endl << std::endl;
 }
 
@@ -122,9 +118,7 @@ bool inputhandler::getBit(uint8_t bit)
 
 void inputhandler::updateState(uint8_t bit, uint8_t val)
 {
-	_padState = (_padState & ~(1 << bit)) | (val << bit);
+	globalVars::padState((globalVars::padState() & ~(1 << bit)) | (val << bit));
 	_mem.int_Joypad(1);
-
-	_inputReg = ((~((_padState & 0x0f) | ((_padState >> 4) & 0x0f))) & 0x0f) | (_inputReg & 0xf0);
 }
 

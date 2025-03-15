@@ -1,0 +1,5 @@
+debugMode=true
+screenSize=4
+colorPalette=true
+saveFolderPath="./roms/saves/"
+saveProgress=true

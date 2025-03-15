@@ -30,7 +30,6 @@ struct operandReturn {
 };
 
 
-///////
 struct spriteSave {
 	uint16_t tileAddress; // the memPlace of the sprite row (tile+his row)
 	int xPos; // mem xpos - 8 | no y needed, checked at oam search

@@ -5,20 +5,24 @@
 #include <iostream>
 #include "CPU.h"
 #include "input.h"
-
+#include <fstream>
+#include <sstream>
 
 class Gameboy { // will be expanded
 public:
-	Gameboy(const std::string romPath);
+	Gameboy();
 	~Gameboy();
 
-	void run();
+	void init();
 
 private:
-	const std::string _romPath;
+	std::string _romPath;
 	Memory _mem;
 	PPU _ppu;
 	CPU _cpu;
 	Screen _sdlScreen;
 	inputhandler _inputHandler;
+
+	void run();
+	bool readConfigFile(const std::string& filename, bool& debugMode, int& screenSize, bool& colorPalette, bool& saveProgress, std::string& saveFolderPath);
 };

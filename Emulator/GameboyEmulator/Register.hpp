@@ -102,6 +102,7 @@ public:
 	Register<uint8_t> A, F, B, C, D, E, H, L, SPmsb, SPlsb, PCmsb, PClsb; 
 	Register<uint16_t> AF, BC, DE, HL, SP, PC;
 
+    //set up registers in memory
     RegisterFile() :
         A("A", _data[1]),
         F("F", _data[0]),
@@ -139,7 +140,8 @@ public:
             {"SP", &SP},
             {"PC", &PC}
             }) {};
-
+    
+    //set cpu flags in memory
     int ZF() { return (F >> 7) & 1; };
     int NF() { return (F >> 6) & 1; };
     int HF() { return (F >> 5) & 1; };
@@ -150,14 +152,16 @@ public:
     void HF(int n) { F = (F & ~(1 << 5)) | (n << 5); };
     void CF(int n) { F = (F & ~(1 << 4)) | (n << 4); };
 
+    //for looking at every register
     std::vector<Register<uint16_t>*>::iterator _begin = _registerVector.begin();
     std::vector<Register<uint16_t>*>::iterator _end = _registerVector.end();
 
+    //for easy conversion
     std::map<std::string, Register<uint8_t>*> strTo8bit;
-
     std::map<std::string, Register<uint16_t>*> strTo16bit;
 
 private:
+    //actual register data
 	uint8_t _data[12]{ 0 };
 	std::vector<Register<uint16_t>*> _registerVector{ &AF, &BC, &DE, &HL, &SP, &PC };
 };

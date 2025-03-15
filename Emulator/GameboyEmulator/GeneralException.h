@@ -25,7 +25,7 @@ public:
 
 
 protected:
-	struct { // probably for further use
+	struct { 
 		int code;
 		std::string e;
 	} _var;

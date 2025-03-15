@@ -19,7 +19,7 @@ public:
 	MBC() = delete; // dont want this contractor
     MBC(const MBC&) = delete;
 
-	MBC(uint8_t* memory, const std::string& romPath);
+	MBC(uint8_t* memory, const std::string& romPath,const std::string& saveFolderPath,const bool saveFlag);
 	~MBC();
 
 	// cant use smart pointers, gives allocation errors
@@ -48,8 +48,10 @@ protected:
 	uint8_t* _mem;
 	cartridgeView _romView;
 	std::vector<char> _romFileCopy;
-
 	bool _isNoMbc;
+
+	virtual void writeToRam(const uint16_t& address, const uint8_t& value);
+	virtual uint8_t readFromRam(const uint16_t& address) const;
 
 	// on initialization a resize is called putting it at the size of the actual sram
 	std::vector<uint8_t> _sram;
@@ -58,7 +60,7 @@ protected:
 	
 	// load the external ram to 0xA000 to 0xBFFF
 	// changes active ram to given ram number
-	void LoadRam(const uint8_t& ramBankNumber);
+	void LoadRam(const uint8_t& ramBankNumber,bool saveRamBank);
 	// max banks number is 256 (such an odd number)
 	// changes active rom to given rom number
 	virtual void loadBankToMem(const uint8_t& bankNumber,bool range);
@@ -67,7 +69,7 @@ protected:
 
 	/******* Bank switching  *********/
 	// no ram
-	void bankSwitchUpdate(bool noMbc,const uint16_t& address, const uint8_t& value);
+	virtual void bankSwitchUpdate(const uint16_t& address, const uint8_t& value) = 0;
 	virtual void updateBanks() = 0;
 	const unsigned short BANK_SELECT_HIGH = 0x7FFF;
 	const unsigned short BANK_SELECT_LOW = 0x6000;
@@ -100,8 +102,15 @@ protected:
 	uint8_t _activeRomBank0; // the currently loaded rom bank (0x0000 - 0x3FFF)
 
 private:
+	std::string _saveFolderPath;
+	bool _saveFlag;
+	std::string _gameName;
+
+
 	void loadRomToCopy(const std::string& romPath);
 
+	void saveTheGame();
+	void LoadTheSave();
 
 	 //TODO: add a bios load at 0 - 0xFF
 	 void loadBiosToMem();

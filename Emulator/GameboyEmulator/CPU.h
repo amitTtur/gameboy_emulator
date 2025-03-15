@@ -14,36 +14,44 @@
 class CPU 
 {
 public:
-	// need to have a rom path
 	CPU() = delete;
 
 	CPU(PPU& ppu, Memory& mem);
 	~CPU();
 	
+	//one frame update
 	void update();
-
-
 
 private:
 	
 	Memory& _mem;
 	OpcodeHandler _opcodeHandler;
 	PPU& _ppu;
-	uint8_t _fallingEdgeTimerDetection; //used to keep the calculation of the TIMA increase between frames
 
+	//used to keep the calculation of the TIMA increase between frames
+	uint8_t _fallingEdgeTimerDetection;
 
+	//bootup
 	void updateMemAndRegsAfterBoot();
+
+	//next cpu instruction
 	int ExecuteNextInstruction();
+
+	//interrupts
 	int handleInterrupts();
+	bool interruptPending();
+
+	//timers
 	void updateTimers(uint8_t tCycles);
 
-	// for tests
+	//fast vram transfer
+	void doDma();
+
+	//debugging
 	std::ofstream logFile;
 	void writeCurrentStateToLogFile();
 
-	bool interruptPending();
 
-	void doDma();
 };
 
 #endif // !CPU_H

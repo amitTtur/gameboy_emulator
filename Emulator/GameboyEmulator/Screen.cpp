@@ -1,13 +1,21 @@
 #include "Screen.h"
 
-void Screen::makeScreen()
+void Screen::makeScreen(int pixelToScreen, bool palleteSwap)
 {
+    _greenPallete = palleteSwap;
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-    window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * SCREEN_TO_WORLD_PIXEL, SCREEN_HEIGHT * SCREEN_TO_WORLD_PIXEL, SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS);
+    window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH * pixelToScreen, SCREEN_HEIGHT * pixelToScreen, SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-    SDL_SetRenderDrawColor(renderer, COLOR_WHITE);  // white background
+    if (!_greenPallete)
+    {
+        SDL_SetRenderDrawColor(renderer, COLOR_WHITE1);
+    }
+    else
+    {
+        SDL_SetRenderDrawColor(renderer, COLOR_WHITE2);
+    }
     SDL_RenderClear(renderer);
 
     std::fill(frameBufferBefore, frameBufferBefore + SCREEN_WIDTH * SCREEN_HEIGHT, 0);
@@ -38,7 +46,14 @@ void Screen::updateScreen(uint8_t frameBuffer[SCREEN_WIDTH * SCREEN_HEIGHT])
         box.h = 1;
 
         // Clear the screen (black background)
-        SDL_SetRenderDrawColor(renderer, COLOR_WHITE);
+        if (!_greenPallete)
+        {
+            SDL_SetRenderDrawColor(renderer, COLOR_WHITE1);
+        }
+        else
+        {
+            SDL_SetRenderDrawColor(renderer, COLOR_WHITE2);
+        }
         SDL_RenderClear(renderer);
 
         // Now we loop through the frame buffer and draw pixels with the correct color
@@ -49,22 +64,50 @@ void Screen::updateScreen(uint8_t frameBuffer[SCREEN_WIDTH * SCREEN_HEIGHT])
             {
             case 3:
                 // Black
-                SDL_SetRenderDrawColor(renderer, COLOR_BLACK);
+                if (!_greenPallete)
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_BLACK1);
+                }
+                else
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_BLACK2);
+                }
                 break;
             case 2:
                 // Dark gray
-                SDL_SetRenderDrawColor(renderer, COLOR_DARK_GRAY);
+                if (!_greenPallete)
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_DARK_GRAY1);
+                }
+                else
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_DARK_GRAY2);
+                }
                 break;
             case 1:
                 // Light gray
-                SDL_SetRenderDrawColor(renderer, COLOR_LIGHT_GRAY);
+                if (!_greenPallete)
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_LIGHT_GRAY1);
+                }
+                else
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_LIGHT_GRAY2);
+                }
                 break;
             case 0:
                 // White
-                SDL_SetRenderDrawColor(renderer, COLOR_WHITE);
+                if (!_greenPallete)
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_WHITE1);
+                }
+                else
+                {
+                    SDL_SetRenderDrawColor(renderer, COLOR_WHITE2);
+                }
                 break;
             default:
-                // If the frameBuffer contains any other value, treat it as black
+                // If the frameBuffer contains any other value, treat it as red
                 SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0xff);
                 break;
             }

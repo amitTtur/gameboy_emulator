@@ -3,80 +3,99 @@
 #define GLOBALVARS_H
 #include <cstdint>
 
-/****** Disclaimer ********/
-// before you do a global variable add extern (basicily 'global' type) to it.
-// if you want the variable to hold a first value put it in the cpp file
-/**************************/
+#include <windows.h>
 
-/* so other class would have access to them */
 
+//this class is used to prevent include circles and dependency issues.
 class globalVars
 {
 public:
 
+	//system running
 	static bool running();
 	static void running(bool b);
 
+	//stat register
 	static bool statDoOperation();
 	static void statDoOperation(bool b);
 
+	//unique LD instruction flag
 	static bool specialLdMove();
 	static void specialLdMove(bool b);
 
+	//systems DIV register - main timer
 	static uint16_t DIVRegister();
 	static void DIVRegister(uint16_t n);
 
+	//used to keep the timer system updated between frames
 	static uint8_t TIMAOverflowCooldown();
 	static void TIMAOverflowCooldown(uint8_t n);
 
+	//halt bug flag
 	static bool haltBug();
 	static void haltBug(bool b);
 
+	//system halted
 	static bool systemHalted();
 	static void systemHalted(bool b);
 
+	//cpu vram sccess flag
 	static bool vramAccess();
 	static void vramAccess(bool b);
 
+	//cpu oam axxess flag
 	static bool oamAccess();
 	static void oamAccess(bool b);
 
-
+	//dma instruction called flag
 	static bool dma();
 	static void dma(bool b);
 
+	//input pad state
+	static uint8_t padState();
+	static void padState(uint8_t val);
+
+	//mbc rumble flag
+	static bool rumble();
+	static void rumble(bool b);
+
+	//mbc3 timer variables
+	static void canIncreaseMbc3Timer(bool val);
+	static bool canIncreaseMbc3Timer();
+	static int getMBC3Timer();
+	static void setMBC3Timer(int val);
+	static int clock;
+
+	//debugging
 	static int times;
+
+
+	/*
+	set console text color to:
+	0- black
+	1- blue
+	2- green
+	4- red
+	7- white
+	14- yellow
+	*/
+	static void setColor(int color);
 
 private:
 
 	static bool _running;
-
-	static bool _statDoOperation; // if _isMemoryOperation the mbc determined if the opcode should do its thing. ---
-	// example, if a write opreation occurs at 0x0 ( gb memory ) , it would change the registers at the mbc
-	// but the write would not be allowed because 0x0 - 0x7FFF is read only;
-
-
-	// an ld that is made to change the registers at 0xFFXX
-	// see opcodes 0xE0 0xF0 0xE2 0xF2
-	// those ba
+	static bool _statDoOperation;
 	static bool _specialLdMove;
-
-
-	static uint16_t _DIVRegister; //system clock
-
-	// amit backwards ehehheheheheheheheh
-	static uint8_t _TIMAOverflowCooldown; //used to keep the cooldown before the reset and overflow of TIMA to TMA between frames
-
+	static uint16_t _DIVRegister;
+	static uint8_t _TIMAOverflowCooldown;
 	static bool _haltBug;
-
 	static bool _systemHalted;
-
-	// ppu allow, false no ,true yes
-	// oam means there is a limited space that the cpu can get in vram, but
-	// if vrram is on the oam is also locked :)
 	static bool _vramAccess;
 	static bool _oamAccess;
-
 	static bool _dma;
+	static uint8_t _padState;
+	static bool _rumble;
+	static int _mbc3Timer;
+	static bool _canIncreaseMbc3Timer;
 };
 #endif

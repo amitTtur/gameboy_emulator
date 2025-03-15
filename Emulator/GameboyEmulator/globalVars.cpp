@@ -10,7 +10,13 @@ bool globalVars::_haltBug;
 bool globalVars::_vramAccess = true;
 bool globalVars::_oamAccess = true;
 bool globalVars::_dma = false;
+bool globalVars::_rumble = false;
+uint8_t globalVars::_padState = 0;
 int globalVars::times = 0;
+int globalVars::clock = 0;
+int globalVars::_mbc3Timer = 0;
+bool globalVars::_canIncreaseMbc3Timer=false;
+
 
 bool globalVars::running()
 {
@@ -105,6 +111,51 @@ void globalVars::oamAccess(bool b)
 void globalVars::dma(bool b)
 {
 	_dma = b;
+}
+
+uint8_t globalVars::padState()
+{
+	return _padState;
+}
+
+void globalVars::padState(uint8_t val)
+{
+	_padState = val;
+}
+
+bool globalVars::rumble()
+{
+	return _rumble;
+}
+
+void globalVars::rumble(bool b)
+{
+	_rumble = b;
+}
+
+bool globalVars::canIncreaseMbc3Timer()
+{
+	return _canIncreaseMbc3Timer;
+}
+
+void globalVars::canIncreaseMbc3Timer(bool val)
+{
+	_canIncreaseMbc3Timer = val;
+}
+
+void globalVars::setColor(int color)
+{
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+int globalVars::getMBC3Timer()
+{
+	return _mbc3Timer;
+}
+
+void globalVars::setMBC3Timer(int val)
+{
+	_mbc3Timer = val;
 }
 
 bool globalVars::dma()

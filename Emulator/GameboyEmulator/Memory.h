@@ -1,38 +1,46 @@
 #pragma once
 #ifndef MEMORY_H
 #define MEMORY_H
+#include <cstdint>
 
 #include "dataStructures.hpp"
 #include "GeneralException.h"
 #include "Register.hpp"
-#include "MBC1.h"
-#include "NoMBC.h"
 
-#include <cstdint>
+#include "MBC1.h"
+#include "MBC2.h"
+#include "MBC3.h"
+#include "NoMBC.h"
+#include "MBC5.h"
+
 
 class Memory {
 public:
-	Memory(const std::string& romPath);
+	Memory();
 	~Memory();
 
+	//initiate memory and mbc
+	void init(const std::string& romPath, const std::string& saveFolderPath, const bool saveFlag);
+
+	//returns reference to memory at index
 	uint8_t& operator[](const uint16_t& index);
 
 	RegisterFile& getsRegs();
 
-	// ALL SHOULD TAKE 4 CYCLES TO FETCH BEWARE AFTER TIMING REASEARCH
-	// BEWARE IT RETURNS AN REFERANCE, dont change its value if not requested to do so
-	uint8_t getMemoryLocation();  // reads at pc and returns the index as well as raising pc by 1 and 2 respectivly
-	uint16_t getMemoryLocation16bit(); // // is ref to the tmpvalue, changing it wont affect anything
-	uint8_t getMemoryLocation(const uint16_t& index); // is a referance
-	uint16_t getMemoryLocation16bit(const uint16_t& index);// isn't a referance doesnt need to be a referance
+	uint8_t getMemoryLocation(); // returns memory at pc
+	uint16_t getMemoryLocation16bit(); // return memory at pc (16 bit)
+	uint8_t getMemoryLocation(const uint16_t& index); // returns memory at index
+	uint16_t getMemoryLocation16bit(const uint16_t& index);// returns memory at index (16 bit)
 
-	operandReturn<uint8_t> get8BitOperand(const operandElementHolder& operand);
-	operandReturn<uint8_t> get8BitOperand(const std::string operand);
-	operandReturn<uint16_t> get16BitOperand(const operandElementHolder& operand);
+	operandReturn<uint8_t> get8BitOperand(const operandElementHolder& operand); //returns operand for opcodes
+	operandReturn<uint8_t> get8BitOperand(const std::string operand); //returns operand for opcodes
+	operandReturn<uint16_t> get16BitOperand(const operandElementHolder& operand); //returns operand for opcodes (16 bit)
 
+	//interrupt master enable
 	uint8_t IME() { return _IME; };
 	void IME(uint8_t v) { _IME = v; };
 
+	//interrupt flag and interrupt enable flag
 	Register<uint8_t>& IE() { return _IE; };
 	Register<uint8_t>& IF() { return _IF; };
 
@@ -49,7 +57,7 @@ public:
 	void int_serialTransfer(uint8_t val);
 	void int_Joypad(uint8_t val);
 
-	//interrupts enable
+	//interrupts enable set
 	uint8_t intEnable_Vblank();
 	uint8_t intEnable_LCDCStatus();
 	uint8_t intEnable_timerOverflow();
@@ -64,14 +72,16 @@ public:
 
 	MBC* getMBC();
 private:
+	//memory
 	uint8_t _mem[0x10000];
+	//registers
 	RegisterFile _regs;
+	//interrupts
 	Register<uint8_t> _IE;
 	Register<uint8_t> _IF;
-
-	uint8_t _IME; //interrupts master enable
-
+	uint8_t _IME;
+	//mbc
 	MBC* _mbc;
 };
 
-#endif // !MEMORY_H
+#endif

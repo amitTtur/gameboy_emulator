@@ -6,6 +6,7 @@ cartridgeView::cartridgeView(const uint8_t* romCpy) : _romCpy(romCpy)
     _romSize = getRomSize();
     _ramSize = getRamSize();
     _ramSupport = getRamSupport();
+    getBatterySupport();
     printROMdetails();
 }
 
@@ -24,11 +25,6 @@ bool cartridgeView::checkNintendoSymbol() const
         0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC,
         0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E
     };
-
-    for (size_t i = 0; i < symbol.size(); i++)
-    {
-
-    }
 
     return true;
 }
@@ -242,4 +238,11 @@ bool cartridgeView::getRamSupport()
     return mode == 2 || mode == 3 || mode == 8 || mode == 9 || mode == 0x10 || 
         mode == 0x12 || mode == 0x13 || mode == 0x1A || mode == 0x1B || mode == 0x1D ||
         mode == 0x1E;
+}
+
+void cartridgeView::getBatterySupport()
+{
+    uint8_t tmp = _romCpy[cartridge_type];
+    _batterySupport = (tmp == 0x3 || tmp == 0x6 || tmp == 0x9 || tmp == 0xD || tmp == 0xF || 
+        tmp == 0x10 || tmp == 0x13 || tmp == 0x1B || tmp == 0x1E);
 }

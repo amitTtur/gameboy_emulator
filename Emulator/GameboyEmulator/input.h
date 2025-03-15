@@ -2,8 +2,10 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <iostream>
-#include "Memory.h"
 #include <iostream>
+
+#include "Memory.h"
+#include "globalVars.h"
 
 class inputhandler
 {
@@ -15,13 +17,14 @@ public:
 private:
 	Memory& _mem;
 	uint8_t& _inputReg;
-	uint8_t _padState;
-
+	
+	//bitwise functions for the input register
 	void setBit(uint8_t bit, uint8_t val);
 	bool getBit(uint8_t bit);
 	
-	void updateState(uint8_t bit, uint8_t val);
+
 	/*
+	update pad state
 	A - 0
 	B - 1
 	SELECT - 2
@@ -31,8 +34,9 @@ private:
 	UP - 7
 	DOWN - 8
 	*/
+	void updateState(uint8_t bit, uint8_t val);
 
-	
+	//debugging
 	void debugInputs();
 
 };
